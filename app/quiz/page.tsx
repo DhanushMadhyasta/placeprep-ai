@@ -67,7 +67,7 @@ export default function QuizPage() {
   const [attempts, setAttempts] = useState(0);
   const [message, setMessage] = useState("");
   const [showNext, setShowNext] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(90);
+  const [timeLeft, setTimeLeft] = useState(60);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
 
@@ -120,7 +120,7 @@ export default function QuizPage() {
 
   const nextQuestion = () => {
     setCurrentQuestion((p) => p + 1);
-    setSelected(""); setAttempts(0); setMessage(""); setShowNext(false); setTimeLeft(90);
+    setSelected(""); setAttempts(0); setMessage(""); setShowNext(false); setTimeLeft(60);
   };
 
   const handleAIQuestion = async () => {
@@ -216,7 +216,7 @@ export default function QuizPage() {
           </div>
           <div style={s.badgeRow}>
             <span style={s.badge}>📚 80+ Qs</span>
-            <span style={s.badge}>⏱ 90 s</span>
+            <span style={s.badge}>⏱ 60 s</span>
             <span style={s.badge}>🎯 Placement Ready</span>
           </div>
           <div style={s.headerBtns}>
@@ -263,7 +263,7 @@ export default function QuizPage() {
 
         {/* Timer strip */}
         <div style={s.timerStrip}>
-          <div style={{ ...s.timerFill, width: `${(timeLeft / 90) * 100}%`, background: timerColor }} />
+          <div style={{ ...s.timerFill, width: `${(timeLeft / 60) * 100}%`, background: timerColor }} />
           <span style={{ ...s.timerLabel, color: timerColor }}>{timeLeft}s remaining</span>
         </div>
 
