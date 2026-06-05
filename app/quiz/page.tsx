@@ -215,7 +215,7 @@ export default function QuizPage() {
             <p style={s.tagline}>Aptitude · Reasoning · Technical · System Design</p>
           </div>
           <div style={s.badgeRow}>
-            <span style={s.badge}>📚 80+ Qs</span>
+            <span style={s.badge}>📚 200 Qs</span>
             <span style={s.badge}>⏱ 60 s</span>
             <span style={s.badge}>🎯 Placement Ready</span>
           </div>
