@@ -176,9 +176,25 @@ export default function HomePage() {
 
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
       <footer style={s.footer}>
-        <span style={s.footerLogo}>PlacePrep <span style={s.logoAccent}>AI</span></span>
-        <span style={s.footerSep}>·</span>
-        <span style={s.footerText}>Built for placement warriors 🔥</span>
+        <div style={s.footerTop}>
+          <div style={s.footerLeft}>
+            <span style={s.footerLogo}>PlacePrep <span style={s.logoAccent}>AI</span></span>
+            <p style={s.footerTagline}>Aptitude · DSA · System Design · Reasoning</p>
+          </div>
+          <div style={s.footerLinks}>
+            <a href="/quiz" style={s.footerLink}>Quiz</a>
+            <span style={s.footerDot} />
+            <a href="/dashboard" style={s.footerLink}>Dashboard</a>
+          </div>
+        </div>
+        <div style={s.footerDivider} />
+        <div style={s.footerBottom}>
+          <span style={s.footerCopy}>© {new Date().getFullYear()} PlacePrep AI. All rights reserved.</span>
+          <span style={s.footerCredit}>
+            Designed &amp; Developed by{" "}
+            <span style={s.footerName}>Dhanush Madhyasta</span>
+          </span>
+        </div>
       </footer>
     </main>
   );
@@ -671,19 +687,55 @@ const s: Record<string, React.CSSProperties> = {
   // ── footer ──
   footer: {
     borderTop: "1px solid #e8e2f8",
-    padding: "22px 28px",
+    padding: "28px 48px 24px",
+    background: "rgba(255,255,255,0.82)",
+    backdropFilter: "blur(12px)",
+  },
+  footerTop: {
+    maxWidth: 1100,
+    margin: "0 auto",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    background: "rgba(255,255,255,0.7)",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 18,
   },
+  footerLeft: { display: "flex", flexDirection: "column", gap: 4 },
   footerLogo: {
     fontFamily: "'Playfair Display',serif",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 800,
     color: "#2d2540",
   },
-  footerSep: { color: "#c3b5f5", fontSize: 18 },
-  footerText: { fontSize: 13, color: "#9488b8", fontWeight: 500 },
+  footerTagline: { fontSize: 11, color: "#9488b8", fontWeight: 500, letterSpacing: "0.04em" },
+  footerLinks: { display: "flex", alignItems: "center", gap: 10 },
+  footerLink: { fontSize: 13, color: "#7c6bb0", fontWeight: 600, textDecoration: "none" },
+  footerDot: {
+    width: 4, height: 4, borderRadius: "50%", background: "#c3b5f5", display: "inline-block",
+  },
+  footerDivider: {
+    maxWidth: 1100,
+    margin: "0 auto 16px",
+    height: 1,
+    background: "linear-gradient(90deg, transparent, #e8e2f8 30%, #e8e2f8 70%, transparent)",
+  },
+  footerBottom: {
+    maxWidth: 1100,
+    margin: "0 auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  footerCopy: { fontSize: 12, color: "#b0a8c8", fontWeight: 500 },
+  footerCredit: { fontSize: 12, color: "#9488b8", fontWeight: 500 },
+  footerName: {
+    fontFamily: "'Playfair Display',serif",
+    fontWeight: 700,
+    fontSize: 13,
+    color: "#7c6bb0",
+    fontStyle: "italic",
+  },
 };
