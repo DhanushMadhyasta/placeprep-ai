@@ -1,229 +1,689 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-export default function DashboardPage() {
-  const [totalAttempts, setTotalAttempts] = useState(0);
-  const [totalScore, setTotalScore] = useState(0);
-  const [bestScore, setBestScore] = useState(0);
+// ─────────────────────────────────────────────────────────────────────────────
+// HOMEPAGE — PlacePrep AI
+// Matches theme of quiz + dashboard pages:
+//   Fonts : Playfair Display (headings) + DM Sans (body)
+//   Colors: #2d2540 text · #7c6bb0 purple · #5b8a52 green · #c0945b amber
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FEATURES = [
+  { icon: "🧠", title: "200+ Questions", desc: "Curated from real FAANG placement rounds — Aptitude, DSA, System Design & Reasoning." },
+  { icon: "⏱", title: "60-Second Timer", desc: "Every question is timed. Train under pressure so exams feel easy." },
+  { icon: "💡", title: "Smart Hints", desc: "Two progressive hints per question guide you without giving away the answer." },
+  { icon: "🤖", title: "AI Question Mode", desc: "Stuck in a loop? Generate a fresh question on-demand using Gemini AI." },
+  { icon: "📊", title: "Dashboard Analytics", desc: "Track attempts, accuracy trends, and your best score over time." },
+  { icon: "🎯", title: "Placement Ready Grade", desc: "Get a verdict — Placement Ready / Good / Keep Practising — after every session." },
+];
+
+const CATEGORIES = [
+  { label: "Aptitude", color: "#7c6bb0", bg: "#f0ecff", border: "#ddd6f3" },
+  { label: "DSA", color: "#5b8a52", bg: "#e8f5e9", border: "#a5d6a7" },
+  { label: "System Design", color: "#5b6bb0", bg: "#eef0ff", border: "#b5bdf5" },
+  { label: "Reasoning", color: "#6b50b0", bg: "#ede8ff", border: "#c3b5f5" },
+  { label: "OOP", color: "#c0945b", bg: "#fff3e0", border: "#ffcc80" },
+  { label: "DBMS", color: "#5b8ab0", bg: "#e3f2fd", border: "#90caf9" },
+];
+
+export default function HomePage() {
+  const [visible, setVisible] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setTotalAttempts(Number(localStorage.getItem("totalAttempts")) || 0);
-    setTotalScore(Number(localStorage.getItem("totalScore")) || 0);
-    setBestScore(Number(localStorage.getItem("bestScore")) || 0);
+    const t = setTimeout(() => setVisible(true), 80);
+    return () => clearTimeout(t);
   }, []);
-
-  const avgScore = totalAttempts > 0 ? Math.round(totalScore / totalAttempts) : 0;
-  const avgPct = Math.round((avgScore / 25) * 100);
-
-  const clearData = () => {
-    localStorage.removeItem("totalAttempts");
-    localStorage.removeItem("totalScore");
-    localStorage.removeItem("bestScore");
-    setTotalAttempts(0); setTotalScore(0); setBestScore(0);
-  };
-
-  const stats = [
-    { label: "Total Attempts", val: totalAttempts, icon: "🎯", color: "#7c6bb0", bg: "#f0ecff", border: "#ddd6f3" },
-    { label: "Best Score", val: `${bestScore}/25`, icon: "🏆", color: "#5b8a52", bg: "#e8f5e9", border: "#a5d6a7" },
-    { label: "Avg Score", val: `${avgScore}/25`, icon: "📈", color: "#c0945b", bg: "#fff3e0", border: "#ffcc80" },
-    { label: "Avg Accuracy", val: `${avgPct}%`, icon: "✅", color: "#5b8ab0", bg: "#e3f2fd", border: "#90caf9" },
-  ];
-
-  const level =
-    avgPct >= 80 ? { label: "🔥 Placement Ready", color: "#5b8a52", bg: "#e8f5e9", border: "#a5d6a7" }
-    : avgPct >= 60 ? { label: "👍 On the Right Track", color: "#7c6bb0", bg: "#f0ecff", border: "#ddd6f3" }
-    : { label: "📚 Keep Practising", color: "#c0945b", bg: "#fff3e0", border: "#ffcc80" };
 
   return (
     <main style={s.root}>
       <style>{css}</style>
 
-      {/* Header */}
+      {/* ── HEADER ───────────────────────────────────────────────────────── */}
       <header style={s.header}>
         <div style={s.headerInner}>
           <div>
             <h1 style={s.logo}>PlacePrep <span style={s.logoAccent}>AI</span></h1>
-            <p style={s.tagline}>Performance Dashboard</p>
+            <p style={s.tagline}>Aptitude · Reasoning · Technical · System Design</p>
           </div>
-          <a href="/quiz" style={s.backBtn}>← Back to Quiz</a>
+          <div style={s.headerBtns}>
+            <a href="/quiz" style={{ ...s.headerLink }}>Quiz</a>
+            <a href="/dashboard" style={{ ...s.headerLink }}>Dashboard</a>
+          </div>
         </div>
       </header>
 
-      <div style={s.container} className="fadeUp">
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
+      <section style={s.hero} ref={heroRef}>
+        {/* decorative blobs */}
+        <div style={s.blob1} />
+        <div style={s.blob2} />
+        <div style={s.blob3} />
 
-        {/* Title section */}
-        <div style={s.titleSection}>
-          <h2 style={s.pageTitle}>Your Progress</h2>
-          <p style={s.pageSub}>Track how you're improving over time</p>
-        </div>
-
-        {/* Stats grid */}
-        <div style={s.statsGrid}>
-          {stats.map((st) => (
-            <div key={st.label} style={{ ...s.statCard, background: st.bg, borderColor: st.border }}>
-              <span style={s.statIcon}>{st.icon}</span>
-              <p style={s.statLabel}>{st.label}</p>
-              <p style={{ ...s.statVal, color: st.color }}>{st.val}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Level badge */}
-        {totalAttempts > 0 && (
-          <div style={s.levelSection}>
-            <p style={s.levelTitle}>Current Level</p>
-            <div style={{ ...s.levelBadge, color: level.color, background: level.bg, borderColor: level.border }}>
-              {level.label}
-            </div>
+        <div style={{ ...s.heroContent, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(28px)", transition: "opacity 0.7s ease, transform 0.7s ease" }}>
+          <div style={s.heroBadge} className="fadeUp-d1">
+            ✨ &nbsp;Trusted by 10,000+ placement aspirants
           </div>
-        )}
 
-        {/* Progress visualization */}
-        {totalAttempts > 0 && (
-          <div style={s.progressCard}>
-            <h3 style={s.cardTitle}>Average Accuracy</h3>
-            <div style={s.bigProgressTrack}>
-              <div style={{ ...s.bigProgressFill, width: `${avgPct}%` }} />
-            </div>
-            <div style={s.progressLabels}>
-              <span style={s.pLabel}>0%</span>
-              <span style={{ ...s.pLabel, color: "#7c6bb0", fontWeight: 700 }}>{avgPct}%</span>
-              <span style={s.pLabel}>100%</span>
-            </div>
+          <h2 style={s.heroTitle} className="fadeUp-d2">
+            Crack Your<br />
+            <span style={s.heroAccent}>Dream Company</span><br />
+            Interview
+          </h2>
 
-            {/* Milestones */}
-            <div style={s.milestones}>
-              {[
-                { pct: 60, label: "Good", color: "#c0945b" },
-                { pct: 80, label: "Ready", color: "#5b8a52" },
-              ].map((m) => (
-                <div key={m.label} style={s.milestone}>
-                  <div style={{ ...s.mDot, background: avgPct >= m.pct ? m.color : "#ddd6f3" }} />
-                  <span style={{ ...s.mLabel, color: avgPct >= m.pct ? m.color : "#9488b8" }}>
-                    {m.pct}% — {m.label}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <p style={s.heroSub} className="fadeUp-d3">
+            Practice 200+ hand-picked placement questions across DSA, Aptitude,
+            System Design &amp; Reasoning — with timed sessions, smart hints,
+            and AI-generated challenges.
+          </p>
+
+          {/* Category pills */}
+          <div style={s.catRow} className="fadeUp-d4">
+            {CATEGORIES.map((c) => (
+              <span key={c.label} style={{ ...s.catPill, color: c.color, background: c.bg, borderColor: c.border }}>
+                {c.label}
+              </span>
+            ))}
           </div>
-        )}
 
-        {/* Tips */}
-        <div style={s.tipsCard}>
-          <h3 style={s.cardTitle}>💡 Placement Tips</h3>
-          <div style={s.tipsList}>
+          {/* CTA buttons */}
+          <div style={s.ctaRow} className="fadeUp-d5">
+            <a href="/quiz" style={s.btnPrimary} className="btn-hover">
+              🚀 &nbsp;Start Quiz
+            </a>
+            <a href="/dashboard" style={s.btnSecondary} className="btn-hover">
+              📊 &nbsp;Dashboard
+            </a>
+          </div>
+
+          {/* quick stats strip */}
+          <div style={s.statsStrip} className="fadeUp-d6">
             {[
-              { icon: "🧮", tip: "Aptitude: Practice time-and-work, profit-loss, and percentages daily." },
-              { icon: "🌳", tip: "DSA: Know trees, graphs, and DP patterns — they appear in 80% of tech rounds." },
-              { icon: "🗄️", tip: "DBMS: Master SQL JOINs, normalization, and transaction properties (ACID)." },
-              { icon: "🧵", tip: "OS: Understand process scheduling, deadlocks, and memory management." },
-              { icon: "🏗️", tip: "System Design: Study LLD patterns and scalability concepts for senior roles." },
-            ].map((t) => (
-              <div key={t.tip} style={s.tipItem}>
-                <span style={s.tipIcon}>{t.icon}</span>
-                <span style={s.tipText}>{t.tip}</span>
+              { val: "200+", label: "Questions" },
+              { val: "6", label: "Categories" },
+              { val: "60s", label: "Per Question" },
+              { val: "∞", label: "AI Questions" },
+            ].map((x) => (
+              <div key={x.label} style={s.statItem}>
+                <span style={s.statVal}>{x.val}</span>
+                <span style={s.statLabel}>{x.label}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Actions */}
-        <div style={s.actions}>
-          <a href="/quiz" style={s.startBtn}>🚀 Start New Quiz</a>
-          {totalAttempts > 0 && (
-            <button style={s.clearBtn} onClick={clearData}>🗑 Reset Progress</button>
-          )}
+        {/* floating card mockup */}
+        <div style={{ ...s.heroCard, opacity: visible ? 1 : 0, transform: visible ? "translateY(0) rotate(-1deg)" : "translateY(40px) rotate(-1deg)", transition: "opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s" }} className="float-card">
+          <div style={s.cardHeader}>
+            <span style={s.cardChip}>DSA</span>
+            <span style={s.cardChip}>Q 12 · 2 attempts left</span>
+          </div>
+          <p style={s.cardQ}>What data structure does BFS use to explore nodes level by level?</p>
+          {[
+            { l: "A", t: "Stack", sel: false },
+            { l: "B", t: "Queue", sel: true },
+            { l: "C", t: "Heap", sel: false },
+            { l: "D", t: "Linked List", sel: false },
+          ].map((o) => (
+            <div key={o.l} style={{ ...s.cardOpt, ...(o.sel ? s.cardOptSel : {}) }}>
+              <span style={{ ...s.cardLetter, background: o.sel ? "#7c6bb0" : "#f0ecff", color: o.sel ? "#fff" : "#7c6bb0" }}>{o.l}</span>
+              <span style={s.cardOptText}>{o.t}</span>
+              {o.sel && <span style={s.cardCheck}>✓</span>}
+            </div>
+          ))}
+          <div style={s.cardTimerBar}>
+            <div style={s.cardTimerFill} />
+            <span style={s.cardTimerLabel}>42s remaining</span>
+          </div>
         </div>
+      </section>
 
-      </div>
+      {/* ── FEATURES ─────────────────────────────────────────────────────── */}
+      <section style={s.featSection}>
+        <div style={s.sectionInner}>
+          <p style={s.sectionEyebrow}>Why PlacePrep AI?</p>
+          <h3 style={s.sectionTitle}>Everything you need<br /><span style={s.sectionAccent}>to get placed.</span></h3>
+          <div style={s.featGrid}>
+            {FEATURES.map((f, i) => (
+              <div key={f.title} style={s.featCard} className="feat-card">
+                <span style={s.featIcon}>{f.icon}</span>
+                <h4 style={s.featTitle}>{f.title}</h4>
+                <p style={s.featDesc}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── BOTTOM CTA ───────────────────────────────────────────────────── */}
+      <section style={s.ctaSection}>
+        <div style={s.ctaInner}>
+          <div style={s.ctaBlob} />
+          <p style={s.ctaEyebrow}>Ready to begin?</p>
+          <h3 style={s.ctaTitle}>Your placement season<br />starts <span style={s.ctaTitleAccent}>right now.</span></h3>
+          <p style={s.ctaSub}>No sign-up. No fluff. Just you, the clock, and 200+ placement questions.</p>
+          <div style={s.ctaBtns}>
+            <a href="/quiz" style={s.btnPrimary} className="btn-hover">
+              🚀 &nbsp;Start Quiz Now
+            </a>
+            <a href="/dashboard" style={s.btnGhost} className="btn-hover">
+              📊 &nbsp;View Dashboard
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
+      <footer style={s.footer}>
+        <span style={s.footerLogo}>PlacePrep <span style={s.logoAccent}>AI</span></span>
+        <span style={s.footerSep}>·</span>
+        <span style={s.footerText}>Built for placement warriors 🔥</span>
+      </footer>
     </main>
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CSS
+// ─────────────────────────────────────────────────────────────────────────────
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'DM Sans', sans-serif; }
+  a { text-decoration: none; }
+
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
+    from { opacity: 0; transform: translateY(18px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .fadeUp { animation: fadeUp 0.4s ease both; }
-  a, button { transition: all 0.2s ease; }
-  a:hover, button:hover { opacity: 0.88; transform: translateY(-1px); }
+  @keyframes float {
+    0%,100% { transform: translateY(0) rotate(-1deg); }
+    50%      { transform: translateY(-10px) rotate(-1deg); }
+  }
+  @keyframes blobPulse {
+    0%,100% { transform: scale(1) translate(0,0); }
+    50%      { transform: scale(1.08) translate(8px,-8px); }
+  }
+
+  .fadeUp-d1 { animation: fadeUp 0.6s ease 0.05s both; }
+  .fadeUp-d2 { animation: fadeUp 0.6s ease 0.15s both; }
+  .fadeUp-d3 { animation: fadeUp 0.6s ease 0.25s both; }
+  .fadeUp-d4 { animation: fadeUp 0.6s ease 0.35s both; }
+  .fadeUp-d5 { animation: fadeUp 0.6s ease 0.45s both; }
+  .fadeUp-d6 { animation: fadeUp 0.6s ease 0.55s both; }
+
+  .float-card { animation: float 4s ease-in-out infinite; }
+
+  .btn-hover { transition: all 0.22s ease !important; }
+  .btn-hover:hover { transform: translateY(-3px) !important; box-shadow: 0 12px 32px rgba(124,107,176,0.28) !important; opacity: 1 !important; }
+
+  .feat-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
+  .feat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(124,107,176,0.14); }
 `;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// STYLES
+// ─────────────────────────────────────────────────────────────────────────────
 const s: Record<string, React.CSSProperties> = {
+
+  // root
   root: {
     minHeight: "100vh",
-    background: "linear-gradient(145deg,#faf8ff 0%,#f3f0ff 40%,#f0faf4 80%,#fffdf4 100%)",
-    fontFamily: "'DM Sans',sans-serif", color: "#2d2540",
+    background: "linear-gradient(160deg,#faf8ff 0%,#f3f0ff 45%,#f0faf4 80%,#fffdf4 100%)",
+    fontFamily: "'DM Sans',sans-serif",
+    color: "#2d2540",
+    overflowX: "hidden",
   },
+
+  // ── header ──
   header: {
-    background: "rgba(255,255,255,0.82)", backdropFilter: "blur(20px)",
-    borderBottom: "1px solid #e8e2f8", padding: "16px 28px",
-    position: "sticky", top: 0, zIndex: 100,
+    background: "rgba(255,255,255,0.82)",
+    backdropFilter: "blur(20px)",
+    borderBottom: "1px solid #e8e2f8",
+    padding: "16px 28px",
+    position: "sticky",
+    top: 0,
+    zIndex: 100,
   },
   headerInner: {
-    maxWidth: 860, margin: "0 auto", display: "flex",
-    alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12,
+    maxWidth: 1100,
+    margin: "0 auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
   },
-  logo: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#2d2540" },
+  logo: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: 24,
+    fontWeight: 800,
+    color: "#2d2540",
+    lineHeight: 1.1,
+  },
   logoAccent: { color: "#7c6bb0" },
   tagline: { fontSize: 11, color: "#9488b8", marginTop: 2, letterSpacing: "0.04em" },
-  backBtn: {
-    background: "#f0ecff", color: "#7c6bb0", border: "1.5px solid #ddd6f3",
-    borderRadius: 22, padding: "8px 16px", fontSize: 13, fontWeight: 700,
-    textDecoration: "none", display: "inline-block",
+  headerBtns: { display: "flex", gap: 10 },
+  headerLink: {
+    background: "transparent",
+    color: "#7c6bb0",
+    border: "1.5px solid #c3b5f5",
+    borderRadius: 22,
+    padding: "7px 18px",
+    fontWeight: 700,
+    fontSize: 13,
+    fontFamily: "'DM Sans',sans-serif",
+    cursor: "pointer",
+    transition: "all 0.2s",
   },
 
-  container: { maxWidth: 860, margin: "0 auto", padding: "32px 18px 60px" },
-  titleSection: { marginBottom: 28, textAlign: "center" },
-  pageTitle: { fontFamily: "'Playfair Display',serif", fontSize: 30, fontWeight: 800, color: "#2d2540" },
-  pageSub: { color: "#9488b8", fontSize: 14, marginTop: 6 },
-
-  statsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14, marginBottom: 24 },
-  statCard: {
-    borderRadius: 20, padding: "22px 20px", textAlign: "center",
-    border: "1.5px solid", boxShadow: "0 2px 16px rgba(124,107,176,0.07)",
+  // ── hero ──
+  hero: {
+    maxWidth: 1100,
+    margin: "0 auto",
+    padding: "72px 28px 80px",
+    display: "grid",
+    gridTemplateColumns: "1fr 420px",
+    gap: 48,
+    alignItems: "center",
+    position: "relative",
   },
-  statIcon: { fontSize: 28, display: "block", marginBottom: 8 },
-  statLabel: { fontSize: 11, color: "#9488b8", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 },
-  statVal: { fontSize: 26, fontWeight: 800, fontFamily: "'Playfair Display',serif" },
-
-  levelSection: { textAlign: "center", marginBottom: 24 },
-  levelTitle: { fontSize: 12, color: "#9488b8", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 },
-  levelBadge: { display: "inline-block", padding: "9px 24px", borderRadius: 99, border: "1.5px solid", fontWeight: 700, fontSize: 16 },
-
-  progressCard: { background: "#fff", borderRadius: 22, padding: "28px 26px", border: "1px solid #ede9fa", boxShadow: "0 4px 20px rgba(124,107,176,0.07)", marginBottom: 20 },
-  cardTitle: { fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#2d2540", marginBottom: 18 },
-  bigProgressTrack: { height: 12, background: "#ede9fa", borderRadius: 99, overflow: "hidden", marginBottom: 8 },
-  bigProgressFill: { height: "100%", background: "linear-gradient(90deg,#a8d5b5,#7c6bb0)", borderRadius: 99, transition: "width 0.8s ease" },
-  progressLabels: { display: "flex", justifyContent: "space-between", marginBottom: 16 },
-  pLabel: { fontSize: 12, color: "#9488b8", fontWeight: 500 },
-  milestones: { display: "flex", gap: 20, flexWrap: "wrap" },
-  milestone: { display: "flex", alignItems: "center", gap: 8 },
-  mDot: { width: 10, height: 10, borderRadius: "50%", transition: "background 0.3s" },
-  mLabel: { fontSize: 13, fontWeight: 600, transition: "color 0.3s" },
-
-  tipsCard: { background: "#fff", borderRadius: 22, padding: "28px 26px", border: "1px solid #ede9fa", boxShadow: "0 4px 20px rgba(124,107,176,0.07)", marginBottom: 28 },
-  tipsList: { display: "flex", flexDirection: "column", gap: 12, marginTop: 4 },
-  tipItem: { display: "flex", gap: 12, alignItems: "flex-start" },
-  tipIcon: { fontSize: 18, flexShrink: 0, marginTop: 1 },
-  tipText: { fontSize: 14, color: "#4a4060", lineHeight: 1.55, fontWeight: 500 },
-
-  actions: { display: "flex", gap: 12, flexWrap: "wrap" },
-  startBtn: {
-    flex: 1, minWidth: 160, textAlign: "center", padding: "15px",
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
-    border: "none", borderRadius: 13, fontSize: 15, fontWeight: 700,
-    textDecoration: "none", display: "inline-block",
-    boxShadow: "0 4px 20px rgba(124,107,176,0.22)",
+  blob1: {
+    position: "absolute",
+    width: 420,
+    height: 420,
+    background: "radial-gradient(circle, rgba(195,181,245,0.22) 0%, transparent 70%)",
+    borderRadius: "50%",
+    top: -60,
+    left: -100,
+    animation: "blobPulse 8s ease-in-out infinite",
+    pointerEvents: "none",
   },
-  clearBtn: {
-    flex: 1, minWidth: 160, padding: "15px", background: "#fff",
-    color: "#c05b5b", border: "1.5px solid #f5a5a5", borderRadius: 13,
-    fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
+  blob2: {
+    position: "absolute",
+    width: 320,
+    height: 320,
+    background: "radial-gradient(circle, rgba(168,213,181,0.20) 0%, transparent 70%)",
+    borderRadius: "50%",
+    bottom: 0,
+    right: 60,
+    animation: "blobPulse 10s ease-in-out 2s infinite",
+    pointerEvents: "none",
   },
+  blob3: {
+    position: "absolute",
+    width: 200,
+    height: 200,
+    background: "radial-gradient(circle, rgba(192,148,91,0.12) 0%, transparent 70%)",
+    borderRadius: "50%",
+    top: "40%",
+    left: "40%",
+    pointerEvents: "none",
+  },
+  heroContent: { position: "relative", zIndex: 1 },
+
+  heroBadge: {
+    display: "inline-flex",
+    alignItems: "center",
+    background: "#f0ecff",
+    color: "#7c6bb0",
+    border: "1px solid #ddd6f3",
+    borderRadius: 99,
+    padding: "6px 16px",
+    fontSize: 12,
+    fontWeight: 700,
+    letterSpacing: "0.03em",
+    marginBottom: 22,
+  },
+
+  heroTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: 58,
+    fontWeight: 900,
+    lineHeight: 1.13,
+    color: "#2d2540",
+    marginBottom: 20,
+    letterSpacing: "-0.02em",
+  },
+  heroAccent: {
+    color: "#7c6bb0",
+    fontStyle: "italic",
+  },
+  heroSub: {
+    fontSize: 16,
+    lineHeight: 1.75,
+    color: "#6b6080",
+    maxWidth: 480,
+    marginBottom: 26,
+    fontWeight: 400,
+  },
+
+  catRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: 36,
+  },
+  catPill: {
+    padding: "5px 14px",
+    borderRadius: 99,
+    fontSize: 12,
+    fontWeight: 700,
+    border: "1.5px solid",
+    letterSpacing: "0.03em",
+  },
+
+  ctaRow: {
+    display: "flex",
+    gap: 14,
+    flexWrap: "wrap",
+    marginBottom: 44,
+  },
+  btnPrimary: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
+    color: "#fff",
+    border: "none",
+    borderRadius: 14,
+    padding: "14px 28px",
+    fontSize: 15,
+    fontWeight: 700,
+    fontFamily: "'DM Sans',sans-serif",
+    cursor: "pointer",
+    boxShadow: "0 4px 20px rgba(124,107,176,0.28)",
+    letterSpacing: "0.02em",
+  },
+  btnSecondary: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    background: "rgba(255,255,255,0.85)",
+    color: "#7c6bb0",
+    border: "1.5px solid #c3b5f5",
+    borderRadius: 14,
+    padding: "14px 28px",
+    fontSize: 15,
+    fontWeight: 700,
+    fontFamily: "'DM Sans',sans-serif",
+    cursor: "pointer",
+    backdropFilter: "blur(8px)",
+    letterSpacing: "0.02em",
+  },
+  btnGhost: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    background: "rgba(255,255,255,0.15)",
+    color: "#fff",
+    border: "1.5px solid rgba(255,255,255,0.35)",
+    borderRadius: 14,
+    padding: "14px 28px",
+    fontSize: 15,
+    fontWeight: 700,
+    fontFamily: "'DM Sans',sans-serif",
+    cursor: "pointer",
+    backdropFilter: "blur(8px)",
+    letterSpacing: "0.02em",
+  },
+
+  statsStrip: {
+    display: "flex",
+    gap: 0,
+    background: "rgba(255,255,255,0.75)",
+    border: "1px solid #ede9fa",
+    borderRadius: 16,
+    backdropFilter: "blur(12px)",
+    overflow: "hidden",
+    width: "fit-content",
+  },
+  statItem: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "14px 24px",
+    borderRight: "1px solid #ede9fa",
+  },
+  statVal: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: 24,
+    fontWeight: 800,
+    color: "#7c6bb0",
+    lineHeight: 1,
+  },
+  statLabel: {
+    fontSize: 11,
+    color: "#9488b8",
+    fontWeight: 600,
+    marginTop: 4,
+    textTransform: "uppercase",
+    letterSpacing: "0.06em",
+  },
+
+  // ── floating card ──
+  heroCard: {
+    position: "relative",
+    zIndex: 1,
+    background: "#fff",
+    borderRadius: 26,
+    padding: "28px 28px 22px",
+    boxShadow: "0 24px 72px rgba(124,107,176,0.18), 0 4px 16px rgba(0,0,0,0.06)",
+    border: "1px solid #ede9fa",
+  },
+  cardHeader: { display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" },
+  cardChip: {
+    background: "#f0ecff",
+    color: "#7c6bb0",
+    borderRadius: 20,
+    padding: "4px 12px",
+    fontSize: 11,
+    fontWeight: 700,
+    border: "1px solid #ddd6f3",
+  },
+  cardQ: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: 17,
+    fontWeight: 700,
+    lineHeight: 1.55,
+    color: "#2d2540",
+    marginBottom: 18,
+  },
+  cardOpt: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "10px 13px",
+    background: "#faf8ff",
+    border: "1.5px solid #ddd6f3",
+    borderRadius: 11,
+    marginBottom: 7,
+    cursor: "default",
+  },
+  cardOptSel: {
+    borderColor: "#7c6bb0",
+    background: "#f0ecff",
+    boxShadow: "0 0 0 3px rgba(124,107,176,0.12)",
+  },
+  cardLetter: {
+    minWidth: 26,
+    height: 26,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 10,
+    fontWeight: 800,
+    flexShrink: 0,
+  },
+  cardOptText: { flex: 1, fontSize: 13, fontWeight: 500, color: "#2d2540" },
+  cardCheck: {
+    width: 20,
+    height: 20,
+    borderRadius: "50%",
+    background: "#7c6bb0",
+    color: "#fff",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 10,
+    fontWeight: 800,
+    flexShrink: 0,
+  },
+  cardTimerBar: {
+    marginTop: 14,
+    position: "relative",
+    height: 28,
+    background: "#f5f3ff",
+    borderRadius: 8,
+    overflow: "hidden",
+    display: "flex",
+    alignItems: "center",
+  },
+  cardTimerFill: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    height: "100%",
+    width: "70%",
+    background: "#5b8a52",
+    opacity: 0.18,
+    borderRadius: 8,
+  },
+  cardTimerLabel: {
+    position: "relative",
+    zIndex: 1,
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#5b8a52",
+    paddingLeft: 10,
+  },
+
+  // ── features section ──
+  featSection: {
+    background: "rgba(255,255,255,0.55)",
+    borderTop: "1px solid #ede9fa",
+    borderBottom: "1px solid #ede9fa",
+    backdropFilter: "blur(12px)",
+    padding: "80px 28px",
+  },
+  sectionInner: { maxWidth: 1100, margin: "0 auto" },
+  sectionEyebrow: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "#7c6bb0",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  sectionTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: 42,
+    fontWeight: 800,
+    color: "#2d2540",
+    textAlign: "center",
+    marginBottom: 52,
+    lineHeight: 1.25,
+    letterSpacing: "-0.01em",
+  },
+  sectionAccent: { color: "#7c6bb0", fontStyle: "italic" },
+
+  featGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gap: 20,
+  },
+  featCard: {
+    background: "#fff",
+    borderRadius: 20,
+    padding: "28px 26px",
+    border: "1px solid #ede9fa",
+    boxShadow: "0 2px 16px rgba(124,107,176,0.07)",
+    cursor: "default",
+  },
+  featIcon: { fontSize: 32, display: "block", marginBottom: 14 },
+  featTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: 18,
+    fontWeight: 700,
+    color: "#2d2540",
+    marginBottom: 8,
+  },
+  featDesc: {
+    fontSize: 14,
+    color: "#6b6080",
+    lineHeight: 1.7,
+    fontWeight: 400,
+  },
+
+  // ── bottom CTA section ──
+  ctaSection: {
+    background: "linear-gradient(135deg,#6b50b0 0%,#5b8a52 100%)",
+    padding: "88px 28px",
+    position: "relative",
+    overflow: "hidden",
+    textAlign: "center",
+  },
+  ctaBlob: {
+    position: "absolute",
+    width: 500,
+    height: 500,
+    background: "rgba(255,255,255,0.07)",
+    borderRadius: "50%",
+    top: -150,
+    right: -100,
+    pointerEvents: "none",
+  },
+  ctaInner: { maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 },
+  ctaEyebrow: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: "rgba(255,255,255,0.65)",
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    marginBottom: 12,
+  },
+  ctaTitle: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: 48,
+    fontWeight: 900,
+    color: "#fff",
+    lineHeight: 1.18,
+    marginBottom: 16,
+    letterSpacing: "-0.02em",
+  },
+  ctaTitleAccent: { fontStyle: "italic", color: "#c3f5d5" },
+  ctaSub: {
+    fontSize: 16,
+    color: "rgba(255,255,255,0.75)",
+    lineHeight: 1.7,
+    marginBottom: 38,
+    fontWeight: 400,
+  },
+  ctaBtns: {
+    display: "flex",
+    gap: 14,
+    justifyContent: "center",
+    flexWrap: "wrap",
+  },
+
+  // ── footer ──
+  footer: {
+    borderTop: "1px solid #e8e2f8",
+    padding: "22px 28px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    background: "rgba(255,255,255,0.7)",
+  },
+  footerLogo: {
+    fontFamily: "'Playfair Display',serif",
+    fontSize: 16,
+    fontWeight: 800,
+    color: "#2d2540",
+  },
+  footerSep: { color: "#c3b5f5", fontSize: 18 },
+  footerText: { fontSize: 13, color: "#9488b8", fontWeight: 500 },
 };
