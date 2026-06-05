@@ -5,7 +5,7 @@ export default function HomePage() {
         <div className="mb-12 text-center">
           <h1 className="text-6xl font-bold">PlacePrep AI</h1>
           <p className="mt-4 text-xl text-zinc-400">
-            Beginner → Pro
+            Beginner → Pro 
           </p>
           <button className="mt-8 rounded-2xl bg-white px-8 py-4 text-black font-semibold">
             Start Daily Challenge
