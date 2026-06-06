@@ -42,44 +42,44 @@ export default function HomePage() {
 
       {/* ── HEADER ───────────────────────────────────────────────────────── */}
       <header style={s.header}>
-        <div style={s.headerInner}>
+        <div style={s.headerInner} className="header-inner">
           <div>
-            <h1 style={s.logo}>PlacePrep <span style={s.logoAccent}>AI</span></h1>
-            <p style={s.tagline}>Aptitude · Reasoning · Technical · System Design</p>
+            <h1 style={s.logo} className="logo-text">PlacePrep <span style={s.logoAccent}>AI</span></h1>
+            <p style={s.tagline} className="header-tagline">Aptitude · Reasoning · Technical · System Design</p>
           </div>
           <div style={s.headerBtns}>
-            <a href="/quiz" style={{ ...s.headerLink }}>Quiz</a>
-            <a href="/dashboard" style={{ ...s.headerLink }}>Dashboard</a>
+            <a href="/quiz" style={{ ...s.headerLink }} className="header-link">Quiz</a>
+            <a href="/dashboard" style={{ ...s.headerLink }} className="header-link">Dashboard</a>
           </div>
         </div>
       </header>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section style={s.hero} ref={heroRef}>
+      <section style={s.hero} ref={heroRef} className="hero-grid">
         {/* decorative blobs */}
         <div style={s.blob1} />
         <div style={s.blob2} />
         <div style={s.blob3} />
 
-        <div style={{ ...s.heroContent, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(28px)", transition: "opacity 0.7s ease, transform 0.7s ease" }}>
-          <div style={s.heroBadge} className="fadeUp-d1">
+        <div style={{ ...s.heroContent, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(28px)", transition: "opacity 0.7s ease, transform 0.7s ease" }} className="hero-content">
+          <div style={s.heroBadge} className="fadeUp-d1 hero-badge">
             ✨ &nbsp;Trusted by 10,000+ placement aspirants
           </div>
 
-          <h2 style={s.heroTitle} className="fadeUp-d2">
+          <h2 style={s.heroTitle} className="fadeUp-d2 hero-title">
             Crack Your<br />
             <span style={s.heroAccent}>Dream Company</span><br />
             Interview
           </h2>
 
-          <p style={s.heroSub} className="fadeUp-d3">
+          <p style={s.heroSub} className="fadeUp-d3 hero-sub">
             Practice 200+ hand-picked placement questions across DSA, Aptitude,
             System Design &amp; Reasoning — with timed sessions, smart hints,
             and AI-generated challenges.
           </p>
 
           {/* Category pills */}
-          <div style={s.catRow} className="fadeUp-d4">
+          <div style={s.catRow} className="fadeUp-d4 cat-row">
             {CATEGORIES.map((c) => (
               <span key={c.label} style={{ ...s.catPill, color: c.color, background: c.bg, borderColor: c.border }}>
                 {c.label}
@@ -88,24 +88,24 @@ export default function HomePage() {
           </div>
 
           {/* CTA buttons */}
-          <div style={s.ctaRow} className="fadeUp-d5">
-            <a href="/quiz" style={s.btnPrimary} className="btn-hover">
+          <div style={s.ctaRow} className="fadeUp-d5 cta-row">
+            <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">
               🚀 &nbsp;Start Quiz
             </a>
-            <a href="/dashboard" style={s.btnSecondary} className="btn-hover">
+            <a href="/dashboard" style={s.btnSecondary} className="btn-hover btn-secondary">
               📊 &nbsp;Dashboard
             </a>
           </div>
 
           {/* quick stats strip */}
-          <div style={s.statsStrip} className="fadeUp-d6">
+          <div style={s.statsStrip} className="fadeUp-d6 stats-strip">
             {[
               { val: "200+", label: "Questions" },
               { val: "6", label: "Categories" },
               { val: "60s", label: "Per Question" },
               { val: "∞", label: "AI Questions" },
             ].map((x) => (
-              <div key={x.label} style={s.statItem}>
+              <div key={x.label} style={s.statItem} className="stat-item">
                 <span style={s.statVal}>{x.val}</span>
                 <span style={s.statLabel}>{x.label}</span>
               </div>
@@ -114,7 +114,7 @@ export default function HomePage() {
         </div>
 
         {/* floating card mockup */}
-        <div style={{ ...s.heroCard, opacity: visible ? 1 : 0, transform: visible ? "translateY(0) rotate(-1deg)" : "translateY(40px) rotate(-1deg)", transition: "opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s" }} className="float-card">
+        <div style={{ ...s.heroCard, opacity: visible ? 1 : 0, transform: visible ? "translateY(0) rotate(-1deg)" : "translateY(40px) rotate(-1deg)", transition: "opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s" }} className="float-card hero-card">
           <div style={s.cardHeader}>
             <span style={s.cardChip}>DSA</span>
             <span style={s.cardChip}>Q 12 · 2 attempts left</span>
@@ -140,11 +140,11 @@ export default function HomePage() {
       </section>
 
       {/* ── FEATURES ─────────────────────────────────────────────────────── */}
-      <section style={s.featSection}>
+      <section style={s.featSection} className="feat-section">
         <div style={s.sectionInner}>
           <p style={s.sectionEyebrow}>Why PlacePrep AI?</p>
-          <h3 style={s.sectionTitle}>Everything you need<br /><span style={s.sectionAccent}>to get placed.</span></h3>
-          <div style={s.featGrid}>
+          <h3 style={s.sectionTitle} className="section-title">Everything you need<br /><span style={s.sectionAccent}>to get placed.</span></h3>
+          <div style={s.featGrid} className="feat-grid">
             {FEATURES.map((f, i) => (
               <div key={f.title} style={s.featCard} className="feat-card">
                 <span style={s.featIcon}>{f.icon}</span>
@@ -157,11 +157,11 @@ export default function HomePage() {
       </section>
 
       {/* ── BOTTOM CTA ───────────────────────────────────────────────────── */}
-      <section style={s.ctaSection}>
+      <section style={s.ctaSection} className="cta-section">
         <div style={s.ctaInner}>
           <div style={s.ctaBlob} />
           <p style={s.ctaEyebrow}>Ready to begin?</p>
-          <h3 style={s.ctaTitle}>Your placement season<br />starts <span style={s.ctaTitleAccent}>right now.</span></h3>
+          <h3 style={s.ctaTitle} className="cta-title">Your placement season<br />starts <span style={s.ctaTitleAccent}>right now.</span></h3>
           <p style={s.ctaSub}>No sign-up. No fluff. Just you, the clock, and 200+ placement questions.</p>
           <div style={s.ctaBtns}>
             <a href="/quiz" style={s.btnPrimary} className="btn-hover">
@@ -175,7 +175,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
-      <footer style={s.footer}>
+      <footer style={s.footer} className="footer-inner">
         <div style={s.footerTop}>
           <div style={s.footerLeft}>
             <span style={s.footerLogo}>PlacePrep <span style={s.logoAccent}>AI</span></span>
@@ -188,7 +188,7 @@ export default function HomePage() {
           </div>
         </div>
         <div style={s.footerDivider} />
-        <div style={s.footerBottom}>
+        <div style={s.footerBottom} className="footer-bottom">
           <span style={s.footerCopy}>© {new Date().getFullYear()} PlacePrep AI. All rights reserved.</span>
           <span style={s.footerCredit}>
             Designed &amp; Developed by{" "}
@@ -236,6 +236,40 @@ const css = `
 
   .feat-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
   .feat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(124,107,176,0.14); }
+
+  /* ── TABLET (≤ 900px) ── */
+  @media (max-width: 900px) {
+    .hero-grid     { grid-template-columns: 1fr !important; padding: 48px 20px 56px !important; }
+    .hero-card     { display: none !important; }
+    .hero-title    { font-size: 44px !important; }
+    .feat-grid     { grid-template-columns: repeat(2,1fr) !important; }
+    .cta-title     { font-size: 38px !important; }
+    .stats-strip   { width: 100% !important; }
+    .section-title { font-size: 34px !important; }
+    .header-tagline{ display: none !important; }
+  }
+
+  /* ── MOBILE (≤ 600px) ── */
+  @media (max-width: 600px) {
+    .hero-grid     { padding: 36px 16px 44px !important; gap: 28px !important; }
+    .hero-title    { font-size: 34px !important; letter-spacing: -0.01em !important; }
+    .hero-sub      { font-size: 14px !important; }
+    .hero-badge    { font-size: 11px !important; padding: 5px 12px !important; }
+    .feat-grid     { grid-template-columns: 1fr !important; gap: 14px !important; }
+    .cta-title     { font-size: 30px !important; }
+    .cta-section   { padding: 60px 16px !important; }
+    .section-title { font-size: 28px !important; }
+    .feat-section  { padding: 56px 16px !important; }
+    .stats-strip   { flex-wrap: wrap !important; width: 100% !important; border-radius: 14px !important; }
+    .stat-item     { flex: 1 1 calc(50% - 1px) !important; padding: 12px 10px !important; }
+    .cta-row       { flex-direction: column !important; }
+    .btn-primary, .btn-secondary { width: 100% !important; justify-content: center !important; }
+    .header-link   { padding: 6px 12px !important; font-size: 12px !important; }
+    .logo-text     { font-size: 20px !important; }
+    .footer-inner  { padding: 20px 16px 18px !important; }
+    .footer-bottom { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; }
+    .cat-row       { gap: 6px !important; }
+  }
 `;
 
 // ─────────────────────────────────────────────────────────────────────────────
