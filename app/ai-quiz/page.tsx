@@ -109,8 +109,8 @@ export default function AIQuestionPage() {
               {sidebarOpen ? "✕" : "☰"}
             </button>
             <div>
-              <span style={s.logo} className="headerLogoText">PlacePrep <span style={s.logoAccent}>AI</span></span>
-              <p style={s.tagline} className="taglineHide">AI Questions · Gemini 3.1</p>
+              <span style={s.logo}>PlacePrep <span style={s.logoAccent}>AI</span></span>
+              <p style={s.tagline} className="tagline">AI Questions · Gemini 3.1</p>
             </div>
           </div>
           <div style={s.headerRight}>
@@ -269,7 +269,7 @@ export default function AIQuestionPage() {
 
             {/* Mobile score strip */}
             {total > 0 && (
-              <div style={s.mobileScoreStrip} className="mobileCatStrip">
+              <div style={s.mobileScoreStrip} className="mobileScoreStrip">
                 <span style={{ fontSize: 13, fontWeight: 600, color: "#5b8a52" }}>✅ {score} correct</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: "#c05b5b" }}>❌ {total - score} wrong</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: "#7c6bb0" }}>🎯 {Math.round((score / total) * 100)}%</span>
@@ -403,27 +403,25 @@ const css = `
   a { transition: all 0.2s ease; text-decoration: none; }
   a:hover { opacity: 0.88; }
 
-  /* Desktop: show sidebar, hide mobile strips */
+  /* Desktop defaults */
   .desktopSidebar  { display: flex !important; }
   .mobileCatStrip  { display: none !important; }
-  .mobileScoreStrip { display: none !important; }
+  .mobileScoreStrip{ display: none !important; }
   .menuBtn         { display: none !important; }
+  .layout          { grid-template-columns: 280px 1fr; }
 
   /* Mobile (≤768px) */
   @media (max-width: 768px) {
-    .desktopSidebar   { display: none !important; }
-    .mobileCatStrip   { display: flex !important; }
-    .mobileScoreStrip { display: flex !important; }
-    .menuBtn          { display: flex !important; }
-    .layout           { grid-template-columns: 1fr !important; }
-    .taglineHide      { display: none !important; }
+    .desktopSidebar  { display: none !important; }
+    .mobileCatStrip  { display: flex !important; }
+    .mobileScoreStrip{ display: flex !important; }
+    .menuBtn         { display: flex !important; }
+    .layout          { grid-template-columns: 1fr !important; }
+    .tagline         { display: none !important; }
   }
 
-  /* Very small phones (≤400px): hide score pill to save header space */
-  @media (max-width: 400px) {
-    .scorePillHide  { display: none !important; }
-    .headerLogoText { font-size: 15px !important; }
-    .navBtnLabel    { display: none !important; }
+  @media (max-width: 420px) {
+    .scorePillHide   { display: none !important; }
   }
 `;
 
@@ -448,20 +446,20 @@ const s: Record<string, React.CSSProperties> = {
   logo: { fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 800, color: "#2d2540" },
   logoAccent: { color: "#7c6bb0" },
   tagline: { fontSize: 10, color: "#9488b8", marginTop: 1, letterSpacing: "0.03em" },
-  headerRight: { display: "flex", alignItems: "center", gap: 6, flexShrink: 0, flexWrap: "nowrap" },
+  headerRight: { display: "flex", alignItems: "center", gap: 8, flexShrink: 0 },
   scorePill: {
     background: "#f0ecff", color: "#7c6bb0", border: "1.5px solid #ddd6f3",
-    borderRadius: 99, padding: "5px 10px", fontSize: 12, fontWeight: 700, whiteSpace: "nowrap",
+    borderRadius: 99, padding: "5px 12px", fontSize: 12, fontWeight: 700,
   },
   navBtn: {
     background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
-    border: "none", borderRadius: 20, padding: "7px 12px",
-    fontWeight: 700, fontSize: 12, display: "inline-block", whiteSpace: "nowrap",
+    border: "none", borderRadius: 20, padding: "7px 16px",
+    fontWeight: 700, fontSize: 12, display: "inline-block",
   },
   navBtnOutline: {
     background: "transparent", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
-    borderRadius: 20, padding: "7px 12px", fontWeight: 700, fontSize: 12,
-    display: "inline-block", whiteSpace: "nowrap",
+    borderRadius: 20, padding: "7px 16px", fontWeight: 700, fontSize: 12,
+    display: "inline-block",
   },
   menuBtn: {
     background: "#f0ecff", border: "1.5px solid #ddd6f3", borderRadius: 10,
@@ -485,12 +483,13 @@ const s: Record<string, React.CSSProperties> = {
 
   // Mobile category strip
   mobileCatStrip: {
-    gap: 8, marginBottom: 14, alignItems: "center",
-    flexWrap: "nowrap", overflowX: "auto", paddingBottom: 2,
+    gap: 10, marginBottom: 14, alignItems: "center",
+    flexWrap: "nowrap",
   },
   mobileCatScroll: {
     display: "flex", gap: 8, overflowX: "auto", flex: 1,
-    paddingBottom: 4, scrollbarWidth: "none",
+    paddingBottom: 4,
+    scrollbarWidth: "none",
   },
   mobileCatChip: {
     padding: "6px 12px", borderRadius: 99, border: "1.5px solid",
@@ -512,8 +511,7 @@ const s: Record<string, React.CSSProperties> = {
 
   // Layout
   container: { maxWidth: 1200, margin: "0 auto", padding: "20px 16px 60px" },
-  layout: { display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, alignItems: "start" },
-  // NOTE: mobile override via CSS class below
+  layout: { display: "grid", gap: 20, alignItems: "start" },
 
   // Desktop sidebar
   sidebar: { flexDirection: "column", gap: 14 },
