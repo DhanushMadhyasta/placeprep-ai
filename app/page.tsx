@@ -47,8 +47,9 @@ export default function HomePage() {
             <h1 style={s.logo} className="logo-text">PlacePrep <span style={s.logoAccent}>AI</span></h1>
             <p style={s.tagline} className="header-tagline">Aptitude · Reasoning · Technical · System Design</p>
           </div>
-          <div style={s.headerBtns}>
+          <div style={s.headerBtns} className="header-btns">
             <a href="/quiz" style={{ ...s.headerLink }} className="header-link">Quiz</a>
+            <a href="/ai-quiz" style={{ ...s.headerLink }} className="header-link">🤖 AI Questions</a>
             <a href="/dashboard" style={{ ...s.headerLink }} className="header-link">Dashboard</a>
           </div>
         </div>
@@ -91,6 +92,9 @@ export default function HomePage() {
           <div style={s.ctaRow} className="fadeUp-d5 cta-row">
             <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">
               🚀 &nbsp;Start Quiz
+            </a>
+            <a href="/ai-quiz" style={s.btnAI} className="btn-hover btn-ai">
+              🤖 &nbsp;AI Questions
             </a>
             <a href="/dashboard" style={s.btnSecondary} className="btn-hover btn-secondary">
               📊 &nbsp;Dashboard
@@ -163,9 +167,12 @@ export default function HomePage() {
           <p style={s.ctaEyebrow}>Ready to begin?</p>
           <h3 style={s.ctaTitle} className="cta-title">Your placement season<br />starts <span style={s.ctaTitleAccent}>right now.</span></h3>
           <p style={s.ctaSub}>No sign-up. No fluff. Just you, the clock, and 200+ placement questions.</p>
-          <div style={s.ctaBtns}>
-            <a href="/quiz" style={s.btnPrimary} className="btn-hover">
+          <div style={s.ctaBtns} className="cta-btns">
+            <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">
               🚀 &nbsp;Start Quiz Now
+            </a>
+            <a href="/ai-quiz" style={s.btnAI} className="btn-hover btn-ai">
+              🤖 &nbsp;AI Questions
             </a>
             <a href="/dashboard" style={s.btnGhost} className="btn-hover">
               📊 &nbsp;View Dashboard
@@ -181,8 +188,10 @@ export default function HomePage() {
             <span style={s.footerLogo}>PlacePrep <span style={s.logoAccent}>AI</span></span>
             <p style={s.footerTagline}>Aptitude · DSA · System Design · Reasoning</p>
           </div>
-          <div style={s.footerLinks}>
+          <div style={s.footerLinks} className="footer-links">
             <a href="/quiz" style={s.footerLink}>Quiz</a>
+            <span style={s.footerDot} />
+            <a href="/ai-quiz" style={s.footerLink}>AI Questions</a>
             <span style={s.footerDot} />
             <a href="/dashboard" style={s.footerLink}>Dashboard</a>
           </div>
@@ -262,13 +271,18 @@ const css = `
     .feat-section  { padding: 56px 16px !important; }
     .stats-strip   { flex-wrap: wrap !important; width: 100% !important; border-radius: 14px !important; }
     .stat-item     { flex: 1 1 calc(50% - 1px) !important; padding: 12px 10px !important; }
-    .cta-row       { flex-direction: column !important; }
-    .btn-primary, .btn-secondary { width: 100% !important; justify-content: center !important; }
-    .header-link   { padding: 6px 12px !important; font-size: 12px !important; }
+    .cta-row       { flex-direction: column !important; align-items: stretch !important; }
+    .btn-primary, .btn-secondary, .btn-ai { width: 100% !important; justify-content: center !important; }
+    .header-link   { padding: 6px 10px !important; font-size: 11px !important; }
+    .header-inner  { flex-wrap: wrap !important; gap: 8px !important; }
+    .header-btns   { flex-wrap: wrap !important; gap: 6px !important; }
     .logo-text     { font-size: 20px !important; }
     .footer-inner  { padding: 20px 16px 18px !important; }
     .footer-bottom { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; }
+    .footer-links  { flex-wrap: wrap !important; gap: 8px !important; }
     .cat-row       { gap: 6px !important; }
+    .cta-btns      { flex-direction: column !important; align-items: stretch !important; }
+    .cta-btns a    { width: 100% !important; justify-content: center !important; }
   }
 `;
 
@@ -460,6 +474,22 @@ const s: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     backdropFilter: "blur(8px)",
     letterSpacing: "0.02em",
+  },
+  btnAI: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 6,
+    background: "linear-gradient(135deg,#c3b5f5,#a8d5b5)",
+    color: "#2d2540",
+    border: "none",
+    borderRadius: 14,
+    padding: "14px 28px",
+    fontSize: 15,
+    fontWeight: 700,
+    fontFamily: "'DM Sans',sans-serif",
+    cursor: "pointer",
+    letterSpacing: "0.02em",
+    boxShadow: "0 4px 16px rgba(124,107,176,0.20)",
   },
   btnGhost: {
     display: "inline-flex",

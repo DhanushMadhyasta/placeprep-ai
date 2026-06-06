@@ -17,45 +17,7 @@ interface Question {
   explanation: string;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AI QUESTION GENERATOR  (calls Anthropic /v1/messages)
-// ─────────────────────────────────────────────────────────────────────────────
-async function fetchAIQuestion(category: string): Promise<Question | null> {
-  try {
-    const prompt = `Generate one placement-interview MCQ question about "${category}". 
-Return ONLY valid JSON (no markdown, no backticks) in this exact shape:
-{
-  "id": 999,
-  "category": "${category}",
-  "question": "...",
-  "options": ["A", "B", "C", "D"],
-  "answer": "A",
-  "hint1": "...",
-  "hint2": "...",
-  "explanation": "..."
-}
-The question must be tricky and commonly asked in top tech company placements.`;
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
-      }
-    );
-
-    const data = await res.json();
-    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-    return JSON.parse(jsonMatch[0]) as Question;
-  } catch {
-    return null;
-  }
-}
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -68,8 +30,7 @@ export default function QuizPage() {
   const [message, setMessage] = useState("");
   const [showNext, setShowNext] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState("");
+
 
   // shuffle and load 25 questions
   useEffect(() => {
@@ -123,23 +84,7 @@ export default function QuizPage() {
     setSelected(""); setAttempts(0); setMessage(""); setShowNext(false); setTimeLeft(60);
   };
 
-  const handleAIQuestion = async () => {
-    setAiLoading(true); setAiError("");
-    const cats = ["DSA", "OOP", "DBMS", "OS", "Aptitude", "Reasoning", "System Design"];
-    const cat = cats[Math.floor(Math.random() * cats.length)];
-    const q = await fetchAIQuestion(cat);
-    if (q) {
-      setQuestions((prev) => {
-        const updated = [...prev];
-        updated.splice(currentQuestion, 0, { ...q, id: Date.now() });
-        return updated;
-      });
-      setAiError("");
-    } else {
-      setAiError("Couldn't generate AI question. Try again!");
-    }
-    setAiLoading(false);
-  };
+
 
   // ── completion screen ──────────────────────────────────────────────────────
   if (currentQuestion >= questions.length) {
@@ -163,9 +108,9 @@ export default function QuizPage() {
     return (
       <main style={s.loadScreen}>
         <style>{css}</style>
-        <div style={s.completionCard} className="fadeUp">
+        <div style={s.completionCard} className="fadeUp q-completion">
           <span style={s.bigEmoji}>🎉</span>
-          <h1 style={s.completionTitle}>Quiz Complete!</h1>
+          <h1 style={s.completionTitle} className="q-completion-title">Quiz Complete!</h1>
           <div style={s.statsRow3}>
             {[
               { label: "Score", val: `${score}/${questions.length}`, color: "#5b8a52" },
@@ -208,44 +153,37 @@ export default function QuizPage() {
       <style>{css}</style>
 
       {/* ── HEADER ── */}
-      <header style={s.header}>
-        <div style={s.headerInner}>
+      <header style={s.header} className="q-header">
+        <div style={s.headerInner} className="q-header-inner">
           <div>
-            <h1 style={s.logo}>PlacePrep <span style={s.logoAccent}>AI</span></h1>
-            <p style={s.tagline}>Aptitude · Reasoning · Technical · System Design</p>
+            <h1 style={s.logo} className="q-logo">PlacePrep <span style={s.logoAccent}>AI</span></h1>
+            <p style={s.tagline} className="q-tagline">Aptitude · Reasoning · Technical · System Design</p>
           </div>
-          <div style={s.badgeRow}>
+          <div style={s.badgeRow} className="q-badge-row">
             <span style={s.badge}>📚 200 Qs</span>
             <span style={s.badge}>⏱ 60 s</span>
             <span style={s.badge}>🎯 Placement Ready</span>
           </div>
-          <div style={s.headerBtns}>
-            <button
-              style={{ ...s.aiBtn, opacity: aiLoading ? 0.7 : 1 }}
-              onClick={handleAIQuestion}
-              disabled={aiLoading}
-            >
-              {aiLoading ? "⏳ Generating…" : "🤖 AI Question"}
-            </button>
-            <a href="/dashboard" style={s.dashBtn}>📊 Dashboard</a>
+          <div style={s.headerBtns} className="q-header-btns">
+            <a href="/ai-quiz" style={s.aiBtn} className="q-ai-btn">🤖 AI Questions</a>
+            <a href="/dashboard" style={s.dashBtn} className="q-dash-btn">📊 Dashboard</a>
           </div>
         </div>
-        {aiError && <p style={s.aiError}>{aiError}</p>}
       </header>
 
       {/* ── BODY ── */}
-      <div style={s.container}>
+      <div style={s.container} className="q-container">
 
         {/* Stats */}
-        <div style={s.statsRow}>
+        <div style={s.statsRow} className="q-stats-row">
           {[
             { label: "Score", val: score, color: "#5b8a52" },
             { label: "Question", val: `${currentQuestion + 1} / ${questions.length}`, color: "#7c6bb0" },
             { label: "Timer", val: `${timeLeft}s`, color: timerColor },
           ].map((x) => (
-            <div key={x.label} style={s.statCard}>
+            <div key={x.label} style={s.statCard} className="q-stat-card">
               <p style={s.statLabel}>{x.label}</p>
-              <p style={{ ...s.statVal, color: x.color }}>{x.val}</p>
+              <p style={{ ...s.statVal, color: x.color }} className="q-stat-val">{x.val}</p>
             </div>
           ))}
         </div>
@@ -268,9 +206,9 @@ export default function QuizPage() {
         </div>
 
         {/* Question dots */}
-        <div style={s.dotsRow}>
+        <div style={s.dotsRow} className="q-dots-row">
           {questions.map((_, i) => (
-            <div key={i} style={{
+            <div key={i} className="q-dot" style={{
               ...s.dot,
               background: i < currentQuestion ? "#5b8a52" : i === currentQuestion ? "#7c6bb0" : "#e8e2f8",
               color: i <= currentQuestion ? "#fff" : "#9488b8",
@@ -281,7 +219,7 @@ export default function QuizPage() {
         </div>
 
         {/* Question card */}
-        <div style={s.qCard} className="fadeUp" key={currentQuestion}>
+        <div style={s.qCard} className="fadeUp q-card" key={currentQuestion}>
 
           <div style={s.qMeta}>
             <span style={{ ...s.qChip, background: `${catColor}18`, color: catColor, borderColor: `${catColor}40` }}>
@@ -292,7 +230,7 @@ export default function QuizPage() {
             </span>
           </div>
 
-          <h2 style={s.qText}>{question.question}</h2>
+          <h2 style={s.qText} className="q-text">{question.question}</h2>
 
           <div style={s.optionsGrid}>
             {question.options.map((opt, idx) => {
@@ -314,7 +252,7 @@ export default function QuizPage() {
                   }}>
                     {LETTERS[idx]}
                   </span>
-                  <span style={s.optText}>{opt}</span>
+                  <span style={s.optText} className="q-opt-text">{opt}</span>
                   {isSel && <span style={s.optCheck}>✓</span>}
                 </button>
               );
@@ -369,6 +307,35 @@ const css = `
   button:hover { opacity: 0.92; transform: translateY(-1px); }
   button { transition: all 0.2s ease; }
   a:hover { opacity: 0.85; }
+
+  /* ── TABLET (≤ 768px) ── */
+  @media (max-width: 768px) {
+    .q-header-inner  { flex-wrap: wrap !important; gap: 10px !important; }
+    .q-badge-row     { margin-left: 0 !important; }
+    .q-stat-val      { font-size: 22px !important; }
+  }
+
+  /* ── MOBILE (≤ 600px) ── */
+  @media (max-width: 600px) {
+    .q-header        { padding: 12px 14px !important; }
+    .q-logo          { font-size: 18px !important; }
+    .q-tagline       { display: none !important; }
+    .q-badge-row     { display: none !important; }
+    .q-header-btns   { gap: 6px !important; }
+    .q-ai-btn        { padding: 6px 12px !important; font-size: 12px !important; }
+    .q-dash-btn      { padding: 6px 12px !important; font-size: 12px !important; }
+    .q-container     { padding: 16px 12px 48px !important; }
+    .q-stats-row     { gap: 8px !important; }
+    .q-stat-card     { padding: 12px 10px !important; border-radius: 14px !important; }
+    .q-stat-val      { font-size: 20px !important; }
+    .q-dots-row      { gap: 4px !important; margin-bottom: 16px !important; }
+    .q-dot           { width: 26px !important; height: 26px !important; font-size: 9px !important; }
+    .q-card          { padding: 18px 14px 16px !important; border-radius: 18px !important; }
+    .q-text          { font-size: 17px !important; margin-bottom: 18px !important; }
+    .q-opt-text      { font-size: 13px !important; }
+    .q-completion    { padding: 36px 22px !important; }
+    .q-completion-title { font-size: 26px !important; }
+  }
 `;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -428,6 +395,7 @@ const s: Record<string, React.CSSProperties> = {
     background: "linear-gradient(135deg,#c3b5f5,#a8d5b5)", color: "#2d2540",
     border: "none", borderRadius: 22, padding: "8px 16px",
     fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
+    textDecoration: "none", display: "inline-block",
   },
   dashBtn: {
     background: "transparent", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
