@@ -17,7 +17,6 @@ interface Question {
   explanation: string;
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -31,11 +30,15 @@ export default function QuizPage() {
   const [showNext, setShowNext] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
 
-
-  // shuffle and load 25 questions
+  // ── FIX: shuffle questions AND shuffle each question's options ──────────────
   useEffect(() => {
     const shuffled = [...placementQuestions].sort(() => Math.random() - 0.5);
-    setQuestions(shuffled.slice(0,25));
+    const picked = shuffled.slice(0, 25).map((q) => ({
+      ...q,
+      // answer stays as the text string so `selected === answer` still works ✓
+      options: [...q.options].sort(() => Math.random() - 0.5),
+    }));
+    setQuestions(picked);
   }, []);
 
   // countdown timer
@@ -83,8 +86,6 @@ export default function QuizPage() {
     setCurrentQuestion((p) => p + 1);
     setSelected(""); setAttempts(0); setMessage(""); setShowNext(false); setTimeLeft(60);
   };
-
-
 
   // ── completion screen ──────────────────────────────────────────────────────
   if (currentQuestion >= questions.length) {
@@ -235,25 +236,32 @@ export default function QuizPage() {
           <div style={s.optionsGrid}>
             {question.options.map((opt, idx) => {
               const isSel = selected === opt;
+              // ── FIX: highlight correct answer green after showNext ──────────
+              const isCorrect = showNext && opt === question.answer;
+              const isWrong = showNext && isSel && opt !== question.answer;
               return (
                 <button
                   key={opt}
                   onClick={() => !showNext && setSelected(opt)}
                   style={{
                     ...s.optBtn,
-                    ...(isSel ? s.optBtnSel : {}),
+                    ...(isSel && !showNext ? s.optBtnSel : {}),
+                    ...(isCorrect ? s.optBtnCorrect : {}),
+                    ...(isWrong ? s.optBtnWrong : {}),
                     cursor: showNext ? "default" : "pointer",
                   }}
                 >
                   <span style={{
                     ...s.optLetter,
-                    background: isSel ? "#7c6bb0" : "#f0ecff",
-                    color: isSel ? "#fff" : "#7c6bb0",
+                    background: isCorrect ? "#5b8a52" : isWrong ? "#c05b5b" : isSel ? "#7c6bb0" : "#f0ecff",
+                    color: isCorrect || isWrong || isSel ? "#fff" : "#7c6bb0",
                   }}>
                     {LETTERS[idx]}
                   </span>
                   <span style={s.optText} className="q-opt-text">{opt}</span>
-                  {isSel && <span style={s.optCheck}>✓</span>}
+                  {isCorrect && <span style={{ ...s.optCheck, background: "#5b8a52" }}>✓</span>}
+                  {isWrong && <span style={{ ...s.optCheck, background: "#c05b5b" }}>✗</span>}
+                  {isSel && !showNext && <span style={s.optCheck}>✓</span>}
                 </button>
               );
             })}
@@ -402,10 +410,6 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: 22, padding: "8px 16px", fontWeight: 700, fontSize: 13,
     cursor: "pointer", textDecoration: "none", display: "inline-block",
   },
-  aiError: {
-    maxWidth: 900, margin: "6px auto 0", color: "#c05b5b",
-    fontSize: 12, fontWeight: 600, paddingLeft: 4,
-  },
 
   // ── container ──
   container: { maxWidth: 820, margin: "0 auto", padding: "28px 18px 60px" },
@@ -478,6 +482,15 @@ const s: Record<string, React.CSSProperties> = {
   optBtnSel: {
     borderColor: "#7c6bb0", background: "#f0ecff",
     boxShadow: "0 0 0 3px rgba(124,107,176,0.12)",
+  },
+  // ── FIX: new styles for correct/wrong reveal ──
+  optBtnCorrect: {
+    borderColor: "#5b8a52", background: "#e8f5e9",
+    boxShadow: "0 0 0 3px rgba(91,138,82,0.12)",
+  },
+  optBtnWrong: {
+    borderColor: "#c05b5b", background: "#fce8e8",
+    boxShadow: "0 0 0 3px rgba(192,91,91,0.12)",
   },
   optLetter: {
     minWidth: 28, height: 28, borderRadius: "50%",

@@ -15,7 +15,7 @@ export const placementQuestions = [
     category: "Aptitude",
     question: "Pipes A and B can fill a tank in 20 and 30 minutes respectively. Both are opened together. After 10 min, A is closed. How many more minutes to fill the tank?",
     options: ["10 min", "5 min", "8 min", "12 min"],
-    answer: "10 min",
+    answer: "5 min",  // fixed: explanation confirms 5 min is correct
     hint1: "Find combined rate and work done in 10 min.",
     hint2: "Combined rate = 1/20 + 1/30 = 1/12. In 10 min: 10/12 = 5/6 filled.",
     explanation: "Remaining = 1/6. B alone fills at 1/30. Time = (1/6)/(1/30) = 5 min. Wait — answer: B fills 1/6 in 5 min. Correct answer is 5 min.",
