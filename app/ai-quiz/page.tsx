@@ -55,7 +55,9 @@ export default function AIQuizPage() {
     setShowNext(false);
 
     try {
-      const res = await fetch(`/api/generate-question?category=${encodeURIComponent(cat)}&nocache=true`);
+      const res = await fetch(
+  `/api/generate-question?category=${encodeURIComponent(cat)}&t=${Date.now()}`
+);
       const data = await res.json();
 
       if (data.error) {

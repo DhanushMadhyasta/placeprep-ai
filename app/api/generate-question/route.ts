@@ -1,34 +1,39 @@
 import { NextResponse } from "next/server";
 
-let cache: { q: object; time: number } | null = null;
+// Track last 5 questions to avoid repeats
+const recentQuestions: string[] = [];
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category") || "DSA";
 
-    // Return cached question if less than 60 seconds old
-    if (cache && Date.now() - cache.time < 60000) {
-      return NextResponse.json(cache.q);
-    }
-
     const API_KEY = process.env.GEMINI_API_KEY ?? "";
+    const seed = Math.floor(Math.random() * 99999);
 
-    // Very short prompt to minimize token usage
-    const prompt = `Give me a ${category} MCQ for placement interviews.
-Respond ONLY with JSON in this exact format (short answers, max 10 words each):
-{"id":1,"category":"${category}","question":"short question?","options":["opt1","opt2","opt3","opt4"],"answer":"opt1","hint1":"short hint","hint2":"short hint2","explanation":"brief reason"}`;
+    const avoidStr = recentQuestions.length > 0
+      ? `Do NOT generate questions about these recent topics: ${recentQuestions.join(", ")}.`
+      : "";
+
+    const prompt = `Generate a unique ${category} MCQ for placement interviews. Seed: ${seed}.
+${avoidStr}
+Pick a SPECIFIC, UNCOMMON subtopic within ${category}. Be creative and varied.
+Return ONLY raw JSON (no markdown, no backticks):
+{"id":${seed},"category":"${category}","question":"specific question here?","options":["opt1","opt2","opt3","opt4"],"answer":"opt1","hint1":"hint one","hint2":"hint two","explanation":"brief explanation"}
+The answer must exactly match one option. Keep all values under 20 words each.`;
 
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 0.5,
+            temperature: 1.0,
             maxOutputTokens: 2048,
+            topP: 0.95,
+            topK: 64,
           },
         }),
       }
@@ -41,31 +46,29 @@ Respond ONLY with JSON in this exact format (short answers, max 10 words each):
     }
 
     const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
     if (!raw) {
-      return NextResponse.json({ error: "Empty response" }, { status: 500 });
+      return NextResponse.json({ error: "Empty response from Gemini" }, { status: 500 });
     }
 
-    // Very aggressive cleaning of markdown fences
+    // Strip markdown fences
     let cleaned = raw;
     cleaned = cleaned.replace(/^```json\s*/i, "");
     cleaned = cleaned.replace(/^```\s*/i, "");
     cleaned = cleaned.replace(/\s*```$/i, "");
     cleaned = cleaned.trim();
 
-    // Find first { and last } to extract JSON
     const start = cleaned.indexOf("{");
     const end = cleaned.lastIndexOf("}");
-
     if (start === -1 || end === -1) {
-      return NextResponse.json({ error: "No JSON found", raw }, { status: 500 });
+      return NextResponse.json({ error: "Could not parse response", raw }, { status: 500 });
     }
 
-    const jsonStr = cleaned.slice(start, end + 1);
-    const question = JSON.parse(jsonStr);
+    const question = JSON.parse(cleaned.slice(start, end + 1));
 
-    // Cache it
-    cache = { q: question, time: Date.now() };
+    // Track recent to avoid repeats (keep last 5)
+    const topic = question.question?.slice(0, 40) ?? "";
+    recentQuestions.push(topic);
+    if (recentQuestions.length > 5) recentQuestions.shift();
 
     return NextResponse.json(question);
 
