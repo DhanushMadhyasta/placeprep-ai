@@ -390,6 +390,7 @@ export default function AIQuestionPage() {
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { overflow-x: hidden; width: 100%; }
   body { font-family: 'DM Sans', sans-serif; }
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(14px); }
@@ -412,16 +413,17 @@ const css = `
 
   /* Mobile (≤768px) */
   @media (max-width: 768px) {
-    .desktopSidebar  { display: none !important; }
-    .mobileCatStrip  { display: flex !important; }
-    .mobileScoreStrip{ display: flex !important; }
-    .menuBtn         { display: flex !important; }
-    .layout          { grid-template-columns: 1fr !important; }
-    .tagline         { display: none !important; }
+    .desktopSidebar   { display: none !important; }
+    .mobileCatStrip   { display: flex !important; }
+    .mobileScoreStrip { display: flex !important; }
+    .menuBtn          { display: flex !important; }
+    .layout           { grid-template-columns: 1fr !important; }
+    .tagline          { display: none !important; }
+    .mobileCatScroll::-webkit-scrollbar { display: none; }
   }
 
   @media (max-width: 420px) {
-    .scorePillHide   { display: none !important; }
+    .scorePillHide { display: none !important; }
   }
 `;
 
@@ -430,17 +432,20 @@ const s: Record<string, React.CSSProperties> = {
     minHeight: "100vh",
     background: "linear-gradient(145deg,#faf8ff 0%,#f3f0ff 40%,#f0faf4 80%,#fffdf4 100%)",
     fontFamily: "'DM Sans',sans-serif", color: "#2d2540",
+    overflowX: "hidden", width: "100%",
   },
 
   // Header
   header: {
     background: "rgba(255,255,255,0.85)", backdropFilter: "blur(20px)",
-    borderBottom: "1px solid #e8e2f8", padding: "12px 20px",
+    borderBottom: "1px solid #e8e2f8", padding: "12px 16px",
     position: "sticky", top: 0, zIndex: 100,
+    width: "100%", overflowX: "hidden",
   },
   headerInner: {
     maxWidth: 1200, margin: "0 auto",
-    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+    width: "100%",
   },
   headerLeft: { display: "flex", alignItems: "center", gap: 12 },
   logo: { fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 800, color: "#2d2540" },
@@ -483,13 +488,13 @@ const s: Record<string, React.CSSProperties> = {
 
   // Mobile category strip
   mobileCatStrip: {
-    gap: 10, marginBottom: 14, alignItems: "center",
-    flexWrap: "nowrap",
+    gap: 8, marginBottom: 14, alignItems: "center",
+    flexWrap: "nowrap", width: "100%", overflow: "hidden",
   },
   mobileCatScroll: {
     display: "flex", gap: 8, overflowX: "auto", flex: 1,
-    paddingBottom: 4,
-    scrollbarWidth: "none",
+    paddingBottom: 4, minWidth: 0,
+    scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
   },
   mobileCatChip: {
     padding: "6px 12px", borderRadius: 99, border: "1.5px solid",
@@ -510,8 +515,8 @@ const s: Record<string, React.CSSProperties> = {
   },
 
   // Layout
-  container: { maxWidth: 1200, margin: "0 auto", padding: "20px 16px 60px" },
-  layout: { display: "grid", gap: 20, alignItems: "start" },
+  container: { maxWidth: 1200, margin: "0 auto", padding: "20px 16px 60px", overflowX: "hidden", width: "100%" },
+  layout: { display: "grid", gap: 20, alignItems: "start", width: "100%", minWidth: 0 },
 
   // Desktop sidebar
   sidebar: { flexDirection: "column", gap: 14 },
