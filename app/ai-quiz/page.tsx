@@ -577,35 +577,37 @@ const s: Record<string, React.CSSProperties> = {
   historyCat: { fontSize: 10, color: "#9488b8", fontWeight: 600, marginTop: 2 },
 
   // Main
-  main: { minHeight: 400, display: "flex", flexDirection: "column", gap: 0 },
+  main: { minHeight: 400, display: "flex", flexDirection: "column", gap: 0, minWidth: 0, width: "100%" },
 
   // Empty state
   emptyState: {
-    background: "#fff", borderRadius: 24, padding: "48px 32px",
+    background: "#fff", borderRadius: 24, padding: "40px 24px",
     border: "1px solid #ede9fa", boxShadow: "0 4px 20px rgba(124,107,176,0.07)",
     textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center",
+    width: "100%", boxSizing: "border-box",
   },
-  emptyIcon: { fontSize: 52, marginBottom: 14 },
+  emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: {
-    fontFamily: "'Playfair Display',serif", fontSize: 24,
+    fontFamily: "'Playfair Display',serif", fontSize: 22,
     fontWeight: 800, color: "#2d2540", marginBottom: 10,
   },
-  emptySub: { fontSize: 14, color: "#6b6080", lineHeight: 1.7, marginBottom: 20, maxWidth: 400 },
-  emptyTips: { display: "flex", flexDirection: "column", gap: 9, marginBottom: 24, alignItems: "flex-start" },
+  emptySub: { fontSize: 14, color: "#6b6080", lineHeight: 1.7, marginBottom: 20, maxWidth: "100%" },
+  emptyTips: { display: "flex", flexDirection: "column", gap: 9, marginBottom: 24, alignItems: "flex-start", width: "100%" },
   emptyTip: { display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#7c6bb0", fontWeight: 500 },
   emptyTipDot: { width: 7, height: 7, borderRadius: "50%", background: "#7c6bb0", flexShrink: 0 },
   emptyBtn: {
     padding: "13px 28px", background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
     color: "#fff", border: "none", borderRadius: 12, fontSize: 14,
     fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
-    boxShadow: "0 4px 20px rgba(124,107,176,0.22)",
+    boxShadow: "0 4px 20px rgba(124,107,176,0.22)", width: "100%",
   },
 
   // Loading
   loadingState: {
-    background: "#fff", borderRadius: 24, padding: "56px 32px",
+    background: "#fff", borderRadius: 24, padding: "48px 24px",
     border: "1px solid #ede9fa", boxShadow: "0 4px 20px rgba(124,107,176,0.07)",
     textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 14,
+    width: "100%", boxSizing: "border-box",
   },
   loadingSpinner: {
     width: 44, height: 44, borderRadius: "50%",
@@ -616,8 +618,9 @@ const s: Record<string, React.CSSProperties> = {
 
   // Question card
   questionCard: {
-    background: "#fff", borderRadius: 24, padding: "28px 24px",
+    background: "#fff", borderRadius: 24, padding: "22px 18px",
     border: "1px solid #ede9fa", boxShadow: "0 8px 40px rgba(124,107,176,0.10)",
+    width: "100%", boxSizing: "border-box", minWidth: 0,
   },
   qHeader: {
     display: "flex", alignItems: "flex-start", justifyContent: "space-between",
@@ -635,7 +638,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   qText: {
     fontFamily: "'Playfair Display',serif", fontSize: 19, fontWeight: 700,
-    lineHeight: 1.6, color: "#2d2540", marginBottom: 20,
+    lineHeight: 1.6, color: "#2d2540", marginBottom: 20, wordBreak: "break-word",
   },
   optionsGrid: { display: "grid", gap: 9, marginBottom: 20 },
   optBtn: {
@@ -651,7 +654,7 @@ const s: Record<string, React.CSSProperties> = {
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 10, fontWeight: 800, flexShrink: 0, transition: "all 0.2s",
   },
-  optText: { flex: 1, fontSize: 14, fontWeight: 500, color: "#2d2540", textAlign: "left" },
+  optText: { flex: 1, fontSize: 14, fontWeight: 500, color: "#2d2540", textAlign: "left", wordBreak: "break-word", minWidth: 0 },
   submitBtn: {
     width: "100%", padding: "14px",
     background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
