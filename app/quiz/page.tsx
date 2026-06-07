@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { placementQuestions } from "../data/placementQuestions";
+import { useAuth } from "@/lib/useAuth";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -21,6 +22,7 @@ interface Question {
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function QuizPage() {
+  useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selected, setSelected] = useState("");
