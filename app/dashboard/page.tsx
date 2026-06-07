@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const [totalAttempts, setTotalAttempts] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
   const [totalScore, setTotalScore] = useState(0);
   const [bestScore, setBestScore] = useState(0);
 
@@ -44,9 +52,14 @@ export default function DashboardPage() {
         <div style={s.headerInner}>
           <div>
             <h1 style={s.logo}>PlacePrep <span style={s.logoAccent}>AI</span></h1>
-            <p style={s.tagline}>Performance Dashboard</p>
+            <p style={s.tagline} className="header-tagline">Aptitude · Reasoning · Technical · System Design</p>
           </div>
-          <a href="/quiz" style={s.backBtn}>← Back to Quiz</a>
+          <div style={s.headerBtns} className="header-btns">
+            <a href="/" style={s.headerLink} className="header-link">Home</a>
+            <a href="/quiz" style={s.headerLink} className="header-link">Quiz</a>
+            <a href="/ai-quiz" style={s.headerLink} className="header-link">🤖 AI</a>
+            <a href="/dashboard" style={s.btnRegisterHeader} className="header-link">Dashboard</a>
+          </div>
         </div>
       </header>
 
@@ -58,13 +71,33 @@ export default function DashboardPage() {
           <p style={s.pageSub}>Track how you're improving over time</p>
         </div>
 
-        {/* Stats grid */}
-        <div style={s.statsGrid}>
+        {/* Stats grid — big visual cards */}
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: 14, marginBottom: 24 }}>
           {stats.map((st) => (
             <div key={st.label} style={{ ...s.statCard, background: st.bg, borderColor: st.border }}>
-              <span style={s.statIcon}>{st.icon}</span>
+              {/* Big circular icon */}
+              <div style={{
+                width: 56, height: 56, borderRadius: "50%",
+                background: st.color, margin: "0 auto 12px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 24, boxShadow: `0 4px 16px ${st.color}44`,
+              }}>
+                {st.icon}
+              </div>
               <p style={s.statLabel}>{st.label}</p>
               <p style={{ ...s.statVal, color: st.color }}>{st.val}</p>
+              {/* Mini progress bar for accuracy */}
+              {st.label === "Avg Accuracy" && totalAttempts > 0 && (
+                <div style={{ marginTop: 10, height: 4, background: "#e8e2f8", borderRadius: 99, overflow: "hidden" }}>
+                  <div style={{ width: `${avgPct}%`, height: "100%", background: st.color, borderRadius: 99, transition: "width 0.8s ease" }} />
+                </div>
+              )}
+              {/* Mini bar for best score */}
+              {st.label === "Best Score" && totalAttempts > 0 && (
+                <div style={{ marginTop: 10, height: 4, background: "#e8e2f8", borderRadius: 99, overflow: "hidden" }}>
+                  <div style={{ width: `${Math.round((bestScore/25)*100)}%`, height: "100%", background: st.color, borderRadius: 99, transition: "width 0.8s ease" }} />
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -156,7 +189,7 @@ const css = `
 
 const s: Record<string, React.CSSProperties> = {
   root: {
-    minHeight: "100vh",
+    minHeight: "100vh", overflowX: "hidden",
     background: "linear-gradient(145deg,#faf8ff 0%,#f3f0ff 40%,#f0faf4 80%,#fffdf4 100%)",
     fontFamily: "'DM Sans',sans-serif", color: "#2d2540",
   },
@@ -166,16 +199,30 @@ const s: Record<string, React.CSSProperties> = {
     position: "sticky", top: 0, zIndex: 100,
   },
   headerInner: {
-    maxWidth: 860, margin: "0 auto", display: "flex",
-    alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12,
+    maxWidth: 1100, margin: "0 auto", display: "flex",
+    alignItems: "center", justifyContent: "space-between", gap: 12,
   },
-  logo: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#2d2540" },
+  logo: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#2d2540", lineHeight: 1.1 },
   logoAccent: { color: "#7c6bb0" },
   tagline: { fontSize: 11, color: "#9488b8", marginTop: 2, letterSpacing: "0.04em" },
-  backBtn: {
-    background: "#f0ecff", color: "#7c6bb0", border: "1.5px solid #ddd6f3",
-    borderRadius: 22, padding: "8px 16px", fontSize: 13, fontWeight: 700,
+  headerBtns: { display: "flex", gap: 10, alignItems: "center" },
+  headerLink: {
+    background: "transparent", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
+    borderRadius: 22, padding: "7px 18px", fontWeight: 700, fontSize: 13,
+    fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
     textDecoration: "none", display: "inline-block",
+  },
+  btnRegisterHeader: {
+    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
+    border: "none", borderRadius: 22, padding: "7px 18px", fontWeight: 700,
+    fontSize: 13, fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
+    textDecoration: "none", display: "inline-block",
+  },
+  primaryBtn: {
+    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
+    border: "none", borderRadius: 22, padding: "8px 14px", fontSize: 13, fontWeight: 700,
+    textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4,
+    whiteSpace: "nowrap",
   },
 
   container: { maxWidth: 860, margin: "0 auto", padding: "32px 18px 60px" },

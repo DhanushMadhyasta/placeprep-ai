@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HOMEPAGE — PlacePrep AI
-// Matches theme of quiz + dashboard pages:
-//   Fonts : Playfair Display (headings) + DM Sans (body)
-//   Colors: #2d2540 text · #7c6bb0 purple · #5b8a52 green · #c0945b amber
+// Auth-aware: shows Login/Register when logged out, full page when logged in
 // ─────────────────────────────────────────────────────────────────────────────
 
 const FEATURES = [
@@ -28,32 +27,107 @@ const CATEGORIES = [
 ];
 
 export default function HomePage() {
+  const router = useRouter();
   const [visible, setVisible] = useState(false);
+  const [user, setUser] = useState<{ fullName: string; username: string } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Check login state from localStorage
+    const stored = localStorage.getItem("placeprep_user");
+    if (stored) {
+      try { setUser(JSON.parse(stored)); } catch { }
+    }
+    setAuthChecked(true);
     const t = setTimeout(() => setVisible(true), 80);
     return () => clearTimeout(t);
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("placeprep_user");
+    localStorage.removeItem("placeprep_token");
+    setUser(null);
+  };
+
+  const firstName = user?.fullName?.split(" ")[0] ?? "";
+
+  // ── HEADER (changes based on auth) ───────────────────────────────────────
+  const renderHeader = () => (
+    <header style={s.header}>
+      <div style={s.headerInner} className="header-inner">
+        <div>
+          <h1 style={s.logo} className="logo-text">PlacePrep <span style={s.logoAccent}>AI</span></h1>
+          <p style={s.tagline} className="header-tagline">Aptitude · Reasoning · Technical · System Design</p>
+        </div>
+
+        {authChecked && (
+          <div style={s.headerBtns} className="header-btns">
+            {user ? (
+              // ── LOGGED IN: show nav + user avatar ──
+              <>
+                <a href="/quiz" style={s.headerLink} className="header-link">Quiz</a>
+                <a href="/ai-quiz" style={s.headerLink} className="header-link">🤖 AI</a>
+                <a href="/dashboard" style={s.headerLink} className="header-link">Dashboard</a>
+                <div style={s.avatarWrap} className="avatar-wrap">
+                  <div style={s.avatarCircle}>{firstName[0]?.toUpperCase()}</div>
+                  <span style={s.avatarName} className="avatar-name">{firstName}</span>
+                  <button style={s.logoutBtn} className="logout-btn" onClick={handleLogout}>Sign Out</button>
+                </div>
+              </>
+            ) : (
+              // ── LOGGED OUT: show only Login + Register ──
+              <>
+                <a href="/login" style={s.headerLink} className="header-link">Sign In</a>
+                <a href="/register" style={s.btnRegisterHeader} className="header-link">Register →</a>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </header>
+  );
+
+  // ── CTA BUTTONS (changes based on auth) ──────────────────────────────────
+  const renderHeroCTA = () => (
+    <div style={s.ctaRow} className="fadeUp-d5 cta-row">
+      {user ? (
+        <>
+          <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">🚀 &nbsp;Start Quiz</a>
+          <a href="/ai-quiz" style={s.btnAI} className="btn-hover btn-ai">🤖 &nbsp;AI Questions</a>
+          <a href="/dashboard" style={s.btnSecondary} className="btn-hover btn-secondary">📊 &nbsp;Dashboard</a>
+        </>
+      ) : (
+        <>
+          <a href="/register" style={s.btnPrimary} className="btn-hover btn-primary">🚀 &nbsp;Get Started Free</a>
+          <a href="/login" style={s.btnSecondary} className="btn-hover btn-secondary">Sign In →</a>
+        </>
+      )}
+    </div>
+  );
+
+  const renderBottomCTA = () => (
+    <div style={s.ctaBtns} className="cta-btns">
+      {user ? (
+        <>
+          <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">🚀 &nbsp;Start Quiz Now</a>
+          <a href="/ai-quiz" style={s.btnAI} className="btn-hover btn-ai">🤖 &nbsp;AI Questions</a>
+          <a href="/dashboard" style={s.btnGhost} className="btn-hover">📊 &nbsp;View Dashboard</a>
+        </>
+      ) : (
+        <>
+          <a href="/register" style={s.btnPrimary} className="btn-hover btn-primary">🚀 &nbsp;Create Free Account</a>
+          <a href="/login" style={s.btnGhost} className="btn-hover">Sign In →</a>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <main style={s.root}>
       <style>{css}</style>
 
-      {/* ── HEADER ───────────────────────────────────────────────────────── */}
-      <header style={s.header}>
-        <div style={s.headerInner} className="header-inner">
-          <div>
-            <h1 style={s.logo} className="logo-text">PlacePrep <span style={s.logoAccent}>AI</span></h1>
-            <p style={s.tagline} className="header-tagline">Aptitude · Reasoning · Technical · System Design</p>
-          </div>
-          <div style={s.headerBtns} className="header-btns">
-            <a href="/quiz" style={{ ...s.headerLink }} className="header-link">Quiz</a>
-            <a href="/ai-quiz" style={{ ...s.headerLink }} className="header-link">🤖 AI Questions</a>
-            <a href="/dashboard" style={{ ...s.headerLink }} className="header-link">Dashboard</a>
-          </div>
-        </div>
-      </header>
+      {renderHeader()}
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section style={s.hero} ref={heroRef} className="hero-grid">
@@ -64,7 +138,7 @@ export default function HomePage() {
 
         <div style={{ ...s.heroContent, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(28px)", transition: "opacity 0.7s ease, transform 0.7s ease" }} className="hero-content">
           <div style={s.heroBadge} className="fadeUp-d1 hero-badge">
-            ✨ &nbsp;Trusted by 10,000+ placement aspirants
+            {user ? `👋 Welcome back, ${firstName}!` : "✨ \u00A0Trusted by 10,000+ placement aspirants"}
           </div>
 
           <h2 style={s.heroTitle} className="fadeUp-d2 hero-title">
@@ -88,18 +162,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          {/* CTA buttons */}
-          <div style={s.ctaRow} className="fadeUp-d5 cta-row">
-            <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">
-              🚀 &nbsp;Start Quiz
-            </a>
-            <a href="/ai-quiz" style={s.btnAI} className="btn-hover btn-ai">
-              🤖 &nbsp;AI Questions
-            </a>
-            <a href="/dashboard" style={s.btnSecondary} className="btn-hover btn-secondary">
-              📊 &nbsp;Dashboard
-            </a>
-          </div>
+          {renderHeroCTA()}
 
           {/* quick stats strip */}
           <div style={s.statsStrip} className="fadeUp-d6 stats-strip">
@@ -149,7 +212,7 @@ export default function HomePage() {
           <p style={s.sectionEyebrow}>Why PlacePrep AI?</p>
           <h3 style={s.sectionTitle} className="section-title">Everything you need<br /><span style={s.sectionAccent}>to get placed.</span></h3>
           <div style={s.featGrid} className="feat-grid">
-            {FEATURES.map((f, i) => (
+            {FEATURES.map((f) => (
               <div key={f.title} style={s.featCard} className="feat-card">
                 <span style={s.featIcon}>{f.icon}</span>
                 <h4 style={s.featTitle}>{f.title}</h4>
@@ -166,18 +229,8 @@ export default function HomePage() {
           <div style={s.ctaBlob} />
           <p style={s.ctaEyebrow}>Ready to begin?</p>
           <h3 style={s.ctaTitle} className="cta-title">Your placement season<br />starts <span style={s.ctaTitleAccent}>right now.</span></h3>
-          <p style={s.ctaSub}>No sign-up. No fluff. Just you, the clock, and 200+ placement questions.</p>
-          <div style={s.ctaBtns} className="cta-btns">
-            <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">
-              🚀 &nbsp;Start Quiz Now
-            </a>
-            <a href="/ai-quiz" style={s.btnAI} className="btn-hover btn-ai">
-              🤖 &nbsp;AI Questions
-            </a>
-            <a href="/dashboard" style={s.btnGhost} className="btn-hover">
-              📊 &nbsp;View Dashboard
-            </a>
-          </div>
+          <p style={s.ctaSub}>{user ? "Keep pushing — every question gets you closer." : "No fluff. Just you, the clock, and 200+ placement questions."}</p>
+          {renderBottomCTA()}
         </div>
       </section>
 
@@ -189,11 +242,21 @@ export default function HomePage() {
             <p style={s.footerTagline}>Aptitude · DSA · System Design · Reasoning</p>
           </div>
           <div style={s.footerLinks} className="footer-links">
-            <a href="/quiz" style={s.footerLink}>Quiz</a>
-            <span style={s.footerDot} />
-            <a href="/ai-quiz" style={s.footerLink}>AI Questions</a>
-            <span style={s.footerDot} />
-            <a href="/dashboard" style={s.footerLink}>Dashboard</a>
+            {user ? (
+              <>
+                <a href="/quiz" style={s.footerLink}>Quiz</a>
+                <span style={s.footerDot} />
+                <a href="/ai-quiz" style={s.footerLink}>AI Questions</a>
+                <span style={s.footerDot} />
+                <a href="/dashboard" style={s.footerLink}>Dashboard</a>
+              </>
+            ) : (
+              <>
+                <a href="/login" style={s.footerLink}>Sign In</a>
+                <span style={s.footerDot} />
+                <a href="/register" style={s.footerLink}>Register</a>
+              </>
+            )}
           </div>
         </div>
         <div style={s.footerDivider} />
@@ -283,6 +346,9 @@ const css = `
     .cat-row       { gap: 6px !important; }
     .cta-btns      { flex-direction: column !important; align-items: stretch !important; }
     .cta-btns a    { width: 100% !important; justify-content: center !important; }
+    .avatar-wrap   { padding: 3px 8px 3px 3px !important; }
+    .avatar-name   { display: none !important; }
+    .logout-btn    { font-size: 11px !important; }
   }
 `;
 
@@ -327,7 +393,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   logoAccent: { color: "#7c6bb0" },
   tagline: { fontSize: 11, color: "#9488b8", marginTop: 2, letterSpacing: "0.04em" },
-  headerBtns: { display: "flex", gap: 10 },
+  headerBtns: { display: "flex", gap: 10, alignItems: "center" },
   headerLink: {
     background: "transparent",
     color: "#7c6bb0",
@@ -339,6 +405,35 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: "'DM Sans',sans-serif",
     cursor: "pointer",
     transition: "all 0.2s",
+  },
+  btnRegisterHeader: {
+    background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
+    color: "#fff",
+    border: "none",
+    borderRadius: 22,
+    padding: "7px 18px",
+    fontWeight: 700,
+    fontSize: 13,
+    fontFamily: "'DM Sans',sans-serif",
+    cursor: "pointer",
+  },
+  avatarWrap: {
+    display: "flex", alignItems: "center", gap: 8,
+    background: "#f0ecff", borderRadius: 24, padding: "4px 12px 4px 4px",
+    border: "1.5px solid #ddd6f3",
+  },
+  avatarCircle: {
+    width: 28, height: 28, borderRadius: "50%",
+    background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
+    color: "#fff", fontSize: 12, fontWeight: 800,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    fontFamily: "'Playfair Display',serif", flexShrink: 0,
+  },
+  avatarName: { fontSize: 13, fontWeight: 700, color: "#2d2540" },
+  logoutBtn: {
+    background: "transparent", border: "none", color: "#9488b8",
+    fontSize: 12, fontWeight: 600, cursor: "pointer",
+    fontFamily: "'DM Sans',sans-serif", padding: "2px 4px",
   },
 
   // ── hero ──
