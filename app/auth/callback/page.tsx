@@ -39,8 +39,9 @@ export default function AuthCallback() {
       const result = await res.json();
       if (!res.ok) { router.push("/login?error=profile_error"); return; }
 
-      localStorage.setItem("placeprep_user", JSON.stringify(result.user));
-      localStorage.setItem("placeprep_token", session.access_token);
+      document.cookie = `placeprep_token=${session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+localStorage.setItem("placeprep_user", JSON.stringify(result.user));
+localStorage.setItem("placeprep_token", session.access_token);
       router.push("/");
     };
 

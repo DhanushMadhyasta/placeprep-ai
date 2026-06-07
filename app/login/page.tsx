@@ -27,9 +27,9 @@ export default function LoginPage() {
       if (!res.ok) { setError(data.error || "Login failed."); return; }
 
       // Save session to localStorage
-      localStorage.setItem("placeprep_user", JSON.stringify(data.user));
-      localStorage.setItem("placeprep_token", data.session.access_token);
-
+document.cookie = `placeprep_token=${data.session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+localStorage.setItem("placeprep_user", JSON.stringify(data.user));
+localStorage.setItem("placeprep_token", data.session.access_token);
       // Go to welcome page
       router.push("/");
     } catch {
