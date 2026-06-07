@@ -45,10 +45,12 @@ export default function HomePage() {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("placeprep_user");
-    localStorage.removeItem("placeprep_token");
-    setUser(null);
-  };
+  document.cookie = "placeprep_token=; path=/; max-age=0";
+  localStorage.removeItem("placeprep_user");
+  localStorage.removeItem("placeprep_token");
+  setUser(null);
+  router.replace("/login");
+};
 
   const firstName = user?.fullName?.split(" ")[0] ?? "";
 
