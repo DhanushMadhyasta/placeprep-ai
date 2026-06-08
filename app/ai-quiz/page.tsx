@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/lib/useAuth";
 
 const categories = [
@@ -62,7 +62,6 @@ export default function AIQuestionPage() {
         setError(data.error);
       } else {
         setQuestion(data);
-        setTotal((t) => t + 1);
       }
     } catch {
       setError("Network error — please try again.");
@@ -73,6 +72,7 @@ export default function AIQuestionPage() {
   const checkAnswer = () => {
     if (!selected) { setMessage("Please select an option first."); setMessageType("warning"); return; }
     if (!question) return;
+    if (attempts === 0) setTotal((t) => t + 1);
     if (selected === question.answer) {
       setMessage("Correct Answer!"); setMessageType("correct");
       setScore((s) => s + 1); setShowAnswer(true);
@@ -201,13 +201,13 @@ export default function AIQuestionPage() {
                     { val: total - score, label: "Wrong", color: "#c05b5b" },
                     { val: `${Math.round((score / total) * 100)}%`, label: "Accuracy", color: "#7c6bb0" },
                   ].map((x, i) => (
-                    <>
-                      {i > 0 && <div key={`d${i}`} style={s.scoreDivider} />}
-                      <div key={x.label} style={s.scoreStat}>
+                    <React.Fragment key={x.label}>
+                      {i > 0 && <div style={s.scoreDivider} />}
+                      <div style={s.scoreStat}>
                         <span style={{ ...s.scoreVal, color: x.color }}>{x.val}</span>
                         <span style={s.scoreLabel}>{x.label}</span>
                       </div>
-                    </>
+                    </React.Fragment>
                   ))}
                 </div>
                 <div style={s.accuracyTrack}>
@@ -648,9 +648,9 @@ const s: Record<string, React.CSSProperties> = {
     background: "#faf8ff", border: "1.5px solid #ddd6f3", borderRadius: 12,
     textAlign: "left", fontFamily: "'DM Sans',sans-serif", width: "100%",
   },
-  optSel: { borderColor: "#7c6bb0", background: "#f0ecff", boxShadow: "0 0 0 3px rgba(124,107,176,0.10)" },
-  optCorrect: { borderColor: "#5b8a52", background: "#e8f5e9", boxShadow: "0 0 0 3px rgba(91,138,82,0.10)" },
-  optWrong: { borderColor: "#c05b5b", background: "#fce8e8", boxShadow: "0 0 0 3px rgba(192,91,91,0.10)" },
+  optSel: { border: "1.5px solid #7c6bb0", background: "#f0ecff", boxShadow: "0 0 0 3px rgba(124,107,176,0.10)" },
+  optCorrect: { border: "1.5px solid #5b8a52", background: "#e8f5e9", boxShadow: "0 0 0 3px rgba(91,138,82,0.10)" },
+  optWrong: { border: "1.5px solid #c05b5b", background: "#fce8e8", boxShadow: "0 0 0 3px rgba(192,91,91,0.10)" },
   optLetter: {
     minWidth: 26, height: 26, borderRadius: "50%",
     display: "flex", alignItems: "center", justifyContent: "center",
