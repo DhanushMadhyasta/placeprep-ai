@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAuth } from "@/lib/useAuth";
 
 const categories = [
   { label: "DSA", icon: "🌳", color: "#5b8a52", bg: "#e8f5e9", border: "#a5d6a7" },
@@ -28,7 +27,6 @@ interface Question {
 type MessageType = "correct" | "wrong" | "hint" | "warning" | "";
 
 export default function AIQuestionPage() {
-  useAuth();
   const [selectedCat, setSelectedCat] = useState("DSA");
   const [question, setQuestion] = useState<Question | null>(null);
   const [loading, setLoading] = useState(false);

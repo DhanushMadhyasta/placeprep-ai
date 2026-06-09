@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/useAuth";
 
 export default function DashboardPage() {
-  useAuth();
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 

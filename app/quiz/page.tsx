@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { placementQuestions } from "../data/placementQuestions";
-import { useAuth } from "@/lib/useAuth";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -22,7 +21,6 @@ interface Question {
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function QuizPage() {
-  useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selected, setSelected] = useState("");
@@ -32,18 +30,15 @@ export default function QuizPage() {
   const [showNext, setShowNext] = useState(false);
   const [timeLeft, setTimeLeft] = useState(60);
 
-  // ── FIX: shuffle questions AND shuffle each question's options ──────────────
   useEffect(() => {
     const shuffled = [...placementQuestions].sort(() => Math.random() - 0.5);
     const picked = shuffled.slice(0, 25).map((q) => ({
       ...q,
-      // answer stays as the text string so `selected === answer` still works ✓
       options: [...q.options].sort(() => Math.random() - 0.5),
     }));
     setQuestions(picked);
   }, []);
 
-  // countdown timer
   useEffect(() => {
     if (questions.length === 0) return;
     if (timeLeft === 0) { nextQuestion(); return; }
@@ -65,7 +60,6 @@ export default function QuizPage() {
 
   const question = questions[currentQuestion];
 
-  // ── handlers ──────────────────────────────────────────────────────────────
   const checkAnswer = () => {
     if (!selected) { setMessage("⚠️ Please select an option first"); return; }
     if (selected === question.answer) {
@@ -89,7 +83,6 @@ export default function QuizPage() {
     setSelected(""); setAttempts(0); setMessage(""); setShowNext(false); setTimeLeft(60);
   };
 
-  // ── completion screen ──────────────────────────────────────────────────────
   if (currentQuestion >= questions.length) {
     if (!sessionStorage.getItem("quizSaved")) {
       const ta = Number(localStorage.getItem("totalAttempts")) || 0;
@@ -140,7 +133,6 @@ export default function QuizPage() {
     );
   }
 
-  // ── timer colour ──────────────────────────────────────────────────────────
   const timerColor = timeLeft > 45 ? "#5b8a52" : timeLeft > 20 ? "#c0945b" : "#c05b5b";
   const LETTERS = ["A", "B", "C", "D"];
   const catColors: Record<string, string> = {
@@ -150,12 +142,10 @@ export default function QuizPage() {
   };
   const catColor = catColors[question.category] ?? "#7c6bb0";
 
-  // ── main quiz UI ───────────────────────────────────────────────────────────
   return (
     <main style={s.root}>
       <style>{css}</style>
 
-      {/* ── HEADER ── */}
       <header style={s.header} className="q-header">
         <div style={s.headerInner} className="q-header-inner">
           <div>
@@ -174,10 +164,8 @@ export default function QuizPage() {
         </div>
       </header>
 
-      {/* ── BODY ── */}
       <div style={s.container} className="q-container">
 
-        {/* Stats */}
         <div style={s.statsRow} className="q-stats-row">
           {[
             { label: "Score", val: score, color: "#5b8a52" },
@@ -191,7 +179,6 @@ export default function QuizPage() {
           ))}
         </div>
 
-        {/* Progress bar */}
         <div style={s.progressWrap}>
           <div style={s.progressTrack}>
             <div style={{ ...s.progressFill, width: `${(currentQuestion / questions.length) * 100}%` }} />
@@ -202,13 +189,11 @@ export default function QuizPage() {
           </p>
         </div>
 
-        {/* Timer strip */}
         <div style={s.timerStrip}>
           <div style={{ ...s.timerFill, width: `${(timeLeft / 60) * 100}%`, background: timerColor }} />
           <span style={{ ...s.timerLabel, color: timerColor }}>{timeLeft}s remaining</span>
         </div>
 
-        {/* Question dots */}
         <div style={s.dotsRow} className="q-dots-row">
           {questions.map((_, i) => (
             <div key={i} className="q-dot" style={{
@@ -221,7 +206,6 @@ export default function QuizPage() {
           ))}
         </div>
 
-        {/* Question card */}
         <div style={s.qCard} className="fadeUp q-card" key={currentQuestion}>
 
           <div style={s.qMeta}>
@@ -238,7 +222,6 @@ export default function QuizPage() {
           <div style={s.optionsGrid}>
             {question.options.map((opt, idx) => {
               const isSel = selected === opt;
-              // ── FIX: highlight correct answer green after showNext ──────────
               const isCorrect = showNext && opt === question.answer;
               const isWrong = showNext && isSel && opt !== question.answer;
               return (
@@ -300,9 +283,6 @@ export default function QuizPage() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CSS KEYFRAMES & FONTS
-// ─────────────────────────────────────────────────────────────────────────────
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -318,14 +298,12 @@ const css = `
   button { transition: all 0.2s ease; }
   a:hover { opacity: 0.85; }
 
-  /* ── TABLET (≤ 768px) ── */
   @media (max-width: 768px) {
     .q-header-inner  { flex-wrap: wrap !important; gap: 10px !important; }
     .q-badge-row     { margin-left: 0 !important; }
     .q-stat-val      { font-size: 22px !important; }
   }
 
-  /* ── MOBILE (≤ 600px) ── */
   @media (max-width: 600px) {
     .q-header        { padding: 12px 14px !important; }
     .q-logo          { font-size: 18px !important; }
@@ -348,11 +326,7 @@ const css = `
   }
 `;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STYLES
-// ─────────────────────────────────────────────────────────────────────────────
 const s: Record<string, React.CSSProperties> = {
-  // ── loading ──
   loadScreen: {
     minHeight: "100vh",
     background: "linear-gradient(145deg,#faf8ff 0%,#f3f0ff 50%,#f0faf4 100%)",
@@ -371,15 +345,11 @@ const s: Record<string, React.CSSProperties> = {
     animation: "spin 0.9s linear infinite",
   },
   loadText: { fontSize: 16, color: "#7c6bb0", fontWeight: 600 },
-
-  // ── root ──
   root: {
     minHeight: "100vh",
     background: "linear-gradient(145deg,#faf8ff 0%,#f3f0ff 40%,#f0faf4 80%,#fffdf4 100%)",
     fontFamily: "'DM Sans',sans-serif", color: "#2d2540",
   },
-
-  // ── header ──
   header: {
     background: "rgba(255,255,255,0.8)", backdropFilter: "blur(20px)",
     borderBottom: "1px solid #e8e2f8", padding: "16px 28px",
@@ -389,10 +359,7 @@ const s: Record<string, React.CSSProperties> = {
     maxWidth: 900, margin: "0 auto", display: "flex",
     flexWrap: "wrap", alignItems: "center", gap: 14,
   },
-  logo: {
-    fontFamily: "'Playfair Display',serif", fontSize: 24,
-    fontWeight: 800, color: "#2d2540", lineHeight: 1.1,
-  },
+  logo: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#2d2540", lineHeight: 1.1 },
   logoAccent: { color: "#7c6bb0" },
   tagline: { fontSize: 11, color: "#9488b8", marginTop: 2, letterSpacing: "0.04em" },
   badgeRow: { display: "flex", gap: 7, marginLeft: "auto", flexWrap: "wrap" },
@@ -412,11 +379,7 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: 22, padding: "8px 16px", fontWeight: 700, fontSize: 13,
     cursor: "pointer", textDecoration: "none", display: "inline-block",
   },
-
-  // ── container ──
   container: { maxWidth: 820, margin: "0 auto", padding: "28px 18px 60px" },
-
-  // ── stats ──
   statsRow: { display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 20 },
   statCard: {
     background: "#fff", borderRadius: 18, padding: "16px 18px",
@@ -425,8 +388,6 @@ const s: Record<string, React.CSSProperties> = {
   },
   statLabel: { fontSize: 11, color: "#9488b8", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 5 },
   statVal: { fontSize: 28, fontWeight: 800, fontFamily: "'Playfair Display',serif" },
-
-  // ── progress ──
   progressWrap: { marginBottom: 12 },
   progressTrack: { height: 7, background: "#ede9fa", borderRadius: 99, overflow: "hidden" },
   progressFill: {
@@ -434,8 +395,6 @@ const s: Record<string, React.CSSProperties> = {
     borderRadius: 99, transition: "width 0.5s ease",
   },
   progressLabel: { fontSize: 11, color: "#9488b8", marginTop: 5, fontWeight: 500 },
-
-  // ── timer strip ──
   timerStrip: {
     position: "relative", height: 32, background: "#f5f3ff",
     borderRadius: 9, overflow: "hidden", marginBottom: 18,
@@ -449,16 +408,12 @@ const s: Record<string, React.CSSProperties> = {
     position: "relative", zIndex: 1, fontWeight: 700,
     fontSize: 13, paddingLeft: 12, transition: "color 1s",
   },
-
-  // ── dots ──
   dotsRow: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 22, justifyContent: "center" },
   dot: {
     width: 32, height: 32, borderRadius: "50%",
     display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 10, fontWeight: 700, transition: "background 0.3s",
   },
-
-  // ── question card ──
   qCard: {
     background: "#fff", borderRadius: 26, padding: "32px 32px 28px",
     boxShadow: "0 8px 40px rgba(124,107,176,0.10)", border: "1px solid #ede9fa",
@@ -472,8 +427,6 @@ const s: Record<string, React.CSSProperties> = {
     fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700,
     lineHeight: 1.6, color: "#2d2540", marginBottom: 24,
   },
-
-  // ── options ──
   optionsGrid: { display: "grid", gap: 9, marginBottom: 22 },
   optBtn: {
     display: "flex", alignItems: "center", gap: 12,
@@ -481,19 +434,9 @@ const s: Record<string, React.CSSProperties> = {
     border: "1.5px solid #ddd6f3", borderRadius: 13,
     textAlign: "left", fontFamily: "'DM Sans',sans-serif", width: "100%",
   },
-  optBtnSel: {
-    borderColor: "#7c6bb0", background: "#f0ecff",
-    boxShadow: "0 0 0 3px rgba(124,107,176,0.12)",
-  },
-  // ── FIX: new styles for correct/wrong reveal ──
-  optBtnCorrect: {
-    borderColor: "#5b8a52", background: "#e8f5e9",
-    boxShadow: "0 0 0 3px rgba(91,138,82,0.12)",
-  },
-  optBtnWrong: {
-    borderColor: "#c05b5b", background: "#fce8e8",
-    boxShadow: "0 0 0 3px rgba(192,91,91,0.12)",
-  },
+  optBtnSel: { borderColor: "#7c6bb0", background: "#f0ecff", boxShadow: "0 0 0 3px rgba(124,107,176,0.12)" },
+  optBtnCorrect: { borderColor: "#5b8a52", background: "#e8f5e9", boxShadow: "0 0 0 3px rgba(91,138,82,0.12)" },
+  optBtnWrong: { borderColor: "#c05b5b", background: "#fce8e8", boxShadow: "0 0 0 3px rgba(192,91,91,0.12)" },
   optLetter: {
     minWidth: 28, height: 28, borderRadius: "50%",
     display: "flex", alignItems: "center", justifyContent: "center",
@@ -505,8 +448,6 @@ const s: Record<string, React.CSSProperties> = {
     color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
     fontSize: 11, fontWeight: 800, flexShrink: 0,
   },
-
-  // ── submit ──
   submitBtn: {
     width: "100%", padding: "15px",
     background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
@@ -514,23 +455,17 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
     boxShadow: "0 4px 20px rgba(124,107,176,0.22)", letterSpacing: "0.02em",
   },
-
-  // ── message ──
   msgBanner: {
     marginTop: 14, padding: "13px 16px", borderRadius: 11,
     border: "1.5px solid", fontSize: 13, fontWeight: 600, lineHeight: 1.6,
     animation: "fadeUp 0.3s ease",
   },
-
-  // ── next ──
   nextBtn: {
     marginTop: 12, width: "100%", padding: "13px",
     background: "#f0ecff", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
     borderRadius: 13, fontSize: 14, fontWeight: 700, cursor: "pointer",
     fontFamily: "'DM Sans',sans-serif", letterSpacing: "0.02em",
   },
-
-  // ── completion ──
   completionCard: {
     background: "#fff", borderRadius: 28, padding: "48px 42px",
     textAlign: "center", boxShadow: "0 16px 64px rgba(124,107,176,0.14)",
