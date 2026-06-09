@@ -9,7 +9,7 @@ export const supabase =
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       auth: {
-        flowType: "implicit", // ← skips PKCE entirely, no verifier needed
+        flowType: "implicit",
       },
     }
   );

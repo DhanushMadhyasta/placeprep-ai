@@ -1,3 +1,4 @@
+// app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -37,10 +38,24 @@ export async function POST(req: NextRequest) {
     });
 
     if (signInError) {
+      // Supabase returns "Email not confirmed" if unverified
+      if (signInError.message.toLowerCase().includes("email not confirmed")) {
+        return NextResponse.json(
+          { error: "Please verify your email before signing in. Check your inbox for the verification link." },
+          { status: 401 }
+        );
+      }
       return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
     }
 
-    // Return session + profile info
+    // Extra safety: block if email not confirmed
+    if (!signInData.user.email_confirmed_at) {
+      return NextResponse.json(
+        { error: "Please verify your email before signing in. Check your inbox for the verification link." },
+        { status: 401 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       user: {
@@ -55,6 +70,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (err) {
+    console.error("Login error:", err);
     return NextResponse.json({ error: "Server error. Please try again." }, { status: 500 });
   }
 }

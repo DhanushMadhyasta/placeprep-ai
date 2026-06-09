@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PROTECTED_ROUTES = ["/dashboard", "/quiz", "/ai-quiz", "/profile"];
 
-export function proxy(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const token = req.cookies.get("placeprep_token")?.value;
   const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));

@@ -1,3 +1,4 @@
+// app/auth/callback/page.tsx
 "use client";
 
 import { useEffect } from "react";
@@ -14,7 +15,6 @@ export default function AuthCallback() {
       if (ran) return;
       ran = true;
 
-      // With implicit flow, session is in the URL hash — Supabase reads it automatically
       const { data: { session }, error } = await supabase.auth.getSession();
 
       if (error || !session?.user) {
@@ -40,8 +40,8 @@ export default function AuthCallback() {
       if (!res.ok) { router.push("/login?error=profile_error"); return; }
 
       document.cookie = `placeprep_token=${session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-localStorage.setItem("placeprep_user", JSON.stringify(result.user));
-localStorage.setItem("placeprep_token", session.access_token);
+      localStorage.setItem("placeprep_user", JSON.stringify(result.user));
+      localStorage.setItem("placeprep_token", session.access_token);
       router.push("/");
     };
 

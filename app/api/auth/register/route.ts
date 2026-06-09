@@ -1,7 +1,7 @@
+// app/api/auth/register/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Use service role key for admin operations (bypasses RLS)
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -24,8 +24,11 @@ export async function POST(req: NextRequest) {
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       return NextResponse.json({ error: "Username can only contain letters, numbers, and underscores" }, { status: 400 });
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      return NextResponse.json({ error: "Please enter a valid email address" }, { status: 400 });
+    }
 
-    // Check if username already exists in profiles
+    // Check username not already taken
     const { data: existingUser } = await supabase
       .from("profiles")
       .select("username")
@@ -36,11 +39,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Username already taken" }, { status: 400 });
     }
 
-    // Create auth user with Supabase Auth
+    // Create auth user — email_confirm: false so verification email is sent
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // skip email verification for simplicity
+      email_confirm: false, // user must verify email before logging in
       user_metadata: { full_name: fullName, username: username.toLowerCase() },
     });
 
@@ -63,13 +66,18 @@ export async function POST(req: NextRequest) {
     });
 
     if (profileError) {
-      // Rollback: delete the auth user if profile insert fails
+      // Rollback: delete auth user if profile insert fails
       await supabase.auth.admin.deleteUser(authData.user.id);
       return NextResponse.json({ error: "Failed to create profile" }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: "Account created successfully" });
+    return NextResponse.json({
+      success: true,
+      message: "Account created! Please check your email to verify your account before signing in.",
+    });
+
   } catch (err) {
+    console.error("Register error:", err);
     return NextResponse.json({ error: "Server error. Please try again." }, { status: 500 });
   }
 }
