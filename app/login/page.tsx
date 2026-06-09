@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import GoogleLoginButton from "@/components/GoogleLoginButton";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const reason = searchParams.get("reason");
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,11 +29,11 @@ export default function LoginPage() {
 
       if (!res.ok) { setError(data.error || "Login failed."); return; }
 
-      // Save session to localStorage
-document.cookie = `placeprep_token=${data.session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-localStorage.setItem("placeprep_user", JSON.stringify(data.user));
-localStorage.setItem("placeprep_token", data.session.access_token);
-      // Go to welcome page
+      // Save session
+      document.cookie = `placeprep_token=${data.session.access_token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+      localStorage.setItem("placeprep_user", JSON.stringify(data.user));
+      localStorage.setItem("placeprep_token", data.session.access_token);
+
       router.push("/");
     } catch {
       setError("Network error. Please try again.");
@@ -59,6 +62,13 @@ localStorage.setItem("placeprep_token", data.session.access_token);
         </div>
         <h1 style={s.title} className="auth-title">Welcome Back</h1>
         <p style={s.sub} className="auth-sub">Sign in to continue your prep journey</p>
+
+        {/* Access revoked banner — shown when redirected after user deletion */}
+        {reason === "access_revoked" && (
+          <div style={s.revokedBanner}>
+            🚫 Your access has been revoked. Please contact the administrator.
+          </div>
+        )}
 
         <GoogleLoginButton />
 
@@ -112,6 +122,15 @@ localStorage.setItem("placeprep_token", data.session.access_token);
         </p>
       </div>
     </main>
+  );
+}
+
+// useSearchParams requires Suspense boundary in Next.js App Router
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
 
@@ -173,6 +192,11 @@ const s: Record<string, React.CSSProperties> = {
     fontWeight: 800, color: "#2d2540", textAlign: "center" as const, marginBottom: 6,
   },
   sub: { fontSize: 14, color: "#9488b8", textAlign: "center" as const, marginBottom: 32 },
+  revokedBanner: {
+    background: "#fff0f0", border: "1.5px solid #f5a5a5",
+    borderRadius: 12, padding: "13px 16px", marginBottom: 20,
+    color: "#c05b5b", fontWeight: 600, fontSize: 13, textAlign: "center" as const,
+  },
   fields: { display: "flex", flexDirection: "column" as const, gap: 18, marginBottom: 22 },
   fieldGroup: { display: "flex", flexDirection: "column" as const, gap: 6 },
   label: { fontSize: 12, fontWeight: 700, color: "#6b5fa0", textTransform: "uppercase" as const, letterSpacing: "0.06em" },
