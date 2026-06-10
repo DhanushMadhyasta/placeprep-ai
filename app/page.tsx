@@ -35,22 +35,20 @@ export default function HomePage() {
       const stored = localStorage.getItem("placeprep_user");
 
       if (!token || !stored) {
-        // No session at all — show logged out UI
+        setUser(null);
         setAuthChecked(true);
         return;
       }
 
-      // Validate token live with Supabase — catches deleted users
+      // Validate token live with Supabase — catches deleted users instantly
       const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(token);
 
       if (!supabaseUser || error) {
-        // Token invalid or user deleted — clear stale data, show logged out UI
         localStorage.removeItem("placeprep_user");
         localStorage.removeItem("placeprep_token");
         document.cookie = "placeprep_token=; path=/; max-age=0";
         setUser(null);
       } else {
-        // Valid user — show logged in UI
         try { setUser(JSON.parse(stored)); } catch { }
       }
 
@@ -58,8 +56,23 @@ export default function HomePage() {
     };
 
     validateSession();
+
+    // Poll every 15 seconds — re-checks while user sits on home page
+    const interval = setInterval(validateSession, 15_000);
+
+    // Listen for localStorage changes (when AuthWatcher clears the token)
+    const onStorage = () => {
+      const token = localStorage.getItem("placeprep_token");
+      if (!token) { setUser(null); setAuthChecked(true); }
+    };
+    window.addEventListener("storage", onStorage);
+
     const t = setTimeout(() => setVisible(true), 80);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      clearInterval(interval);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
   const handleLogout = () => {
