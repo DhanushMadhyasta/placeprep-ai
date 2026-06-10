@@ -30,7 +30,7 @@ The answer must exactly match one option. Keep all values under 20 words each.`;
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            temperature: 1.0,
+            temperature: 0.4,
             maxOutputTokens: 2048,
             topP: 0.95,
             topK: 64,
