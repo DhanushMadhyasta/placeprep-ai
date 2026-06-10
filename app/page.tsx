@@ -2,11 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HOMEPAGE — PlacePrep AI
-// Auth-aware: shows Login/Register when logged out, full page when logged in
-// ─────────────────────────────────────────────────────────────────────────────
+import { supabase } from "@/lib/supabase";
 
 const FEATURES = [
   { icon: "🧠", title: "200+ Questions", desc: "Curated from real FAANG placement rounds — Aptitude, DSA, System Design & Reasoning." },
@@ -34,27 +30,48 @@ export default function HomePage() {
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check login state from localStorage
-    const stored = localStorage.getItem("placeprep_user");
-    if (stored) {
-      try { setUser(JSON.parse(stored)); } catch { }
-    }
-    setAuthChecked(true);
+    const validateSession = async () => {
+      const token = localStorage.getItem("placeprep_token");
+      const stored = localStorage.getItem("placeprep_user");
+
+      if (!token || !stored) {
+        // No session at all — show logged out UI
+        setAuthChecked(true);
+        return;
+      }
+
+      // Validate token live with Supabase — catches deleted users
+      const { data: { user: supabaseUser }, error } = await supabase.auth.getUser(token);
+
+      if (!supabaseUser || error) {
+        // Token invalid or user deleted — clear stale data, show logged out UI
+        localStorage.removeItem("placeprep_user");
+        localStorage.removeItem("placeprep_token");
+        document.cookie = "placeprep_token=; path=/; max-age=0";
+        setUser(null);
+      } else {
+        // Valid user — show logged in UI
+        try { setUser(JSON.parse(stored)); } catch { }
+      }
+
+      setAuthChecked(true);
+    };
+
+    validateSession();
     const t = setTimeout(() => setVisible(true), 80);
     return () => clearTimeout(t);
   }, []);
 
   const handleLogout = () => {
-  document.cookie = "placeprep_token=; path=/; max-age=0";
-  localStorage.removeItem("placeprep_user");
-  localStorage.removeItem("placeprep_token");
-  setUser(null);
-  router.replace("/login");
-};
+    document.cookie = "placeprep_token=; path=/; max-age=0";
+    localStorage.removeItem("placeprep_user");
+    localStorage.removeItem("placeprep_token");
+    setUser(null);
+    router.replace("/login");
+  };
 
   const firstName = user?.fullName?.split(" ")[0] ?? "";
 
-  // ── HEADER (changes based on auth) ───────────────────────────────────────
   const renderHeader = () => (
     <header style={s.header}>
       <div style={s.headerInner} className="header-inner">
@@ -66,7 +83,6 @@ export default function HomePage() {
         {authChecked && (
           <div style={s.headerBtns} className="header-btns">
             {user ? (
-              // ── LOGGED IN: show nav + user avatar ──
               <>
                 <a href="/quiz" style={s.headerLink} className="header-link">Quiz</a>
                 <a href="/ai-quiz" style={s.headerLink} className="header-link">🤖 AI</a>
@@ -78,7 +94,6 @@ export default function HomePage() {
                 </div>
               </>
             ) : (
-              // ── LOGGED OUT: show only Login + Register ──
               <>
                 <a href="/login" style={s.headerLink} className="header-link">Sign In</a>
                 <a href="/register" style={s.btnRegisterHeader} className="header-link">Register →</a>
@@ -90,7 +105,6 @@ export default function HomePage() {
     </header>
   );
 
-  // ── CTA BUTTONS (changes based on auth) ──────────────────────────────────
   const renderHeroCTA = () => (
     <div style={s.ctaRow} className="fadeUp-d5 cta-row">
       {user ? (
@@ -131,9 +145,7 @@ export default function HomePage() {
 
       {renderHeader()}
 
-      {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section style={s.hero} ref={heroRef} className="hero-grid">
-        {/* decorative blobs */}
         <div style={s.blob1} />
         <div style={s.blob2} />
         <div style={s.blob3} />
@@ -155,7 +167,6 @@ export default function HomePage() {
             and AI-generated challenges.
           </p>
 
-          {/* Category pills */}
           <div style={s.catRow} className="fadeUp-d4 cat-row">
             {CATEGORIES.map((c) => (
               <span key={c.label} style={{ ...s.catPill, color: c.color, background: c.bg, borderColor: c.border }}>
@@ -166,7 +177,6 @@ export default function HomePage() {
 
           {renderHeroCTA()}
 
-          {/* quick stats strip */}
           <div style={s.statsStrip} className="fadeUp-d6 stats-strip">
             {[
               { val: "200+", label: "Questions" },
@@ -182,7 +192,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* floating card mockup */}
         <div style={{ ...s.heroCard, opacity: visible ? 1 : 0, transform: visible ? "translateY(0) rotate(-1deg)" : "translateY(40px) rotate(-1deg)", transition: "opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s" }} className="float-card hero-card">
           <div style={s.cardHeader}>
             <span style={s.cardChip}>DSA</span>
@@ -208,7 +217,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── FEATURES ─────────────────────────────────────────────────────── */}
       <section style={s.featSection} className="feat-section">
         <div style={s.sectionInner}>
           <p style={s.sectionEyebrow}>Why PlacePrep AI?</p>
@@ -225,7 +233,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── BOTTOM CTA ───────────────────────────────────────────────────── */}
       <section style={s.ctaSection} className="cta-section">
         <div style={s.ctaInner}>
           <div style={s.ctaBlob} />
@@ -236,7 +243,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
       <footer style={s.footer} className="footer-inner">
         <div style={s.footerTop}>
           <div style={s.footerLeft}>
@@ -274,9 +280,6 @@ export default function HomePage() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CSS
-// ─────────────────────────────────────────────────────────────────────────────
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -311,7 +314,6 @@ const css = `
   .feat-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
   .feat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(124,107,176,0.14); }
 
-  /* ── TABLET (≤ 900px) ── */
   @media (max-width: 900px) {
     .hero-grid     { grid-template-columns: 1fr !important; padding: 48px 20px 56px !important; }
     .hero-card     { display: none !important; }
@@ -323,7 +325,6 @@ const css = `
     .header-tagline{ display: none !important; }
   }
 
-  /* ── MOBILE (≤ 600px) ── */
   @media (max-width: 600px) {
     .hero-grid     { padding: 36px 16px 44px !important; gap: 28px !important; }
     .hero-title    { font-size: 34px !important; letter-spacing: -0.01em !important; }
@@ -354,12 +355,7 @@ const css = `
   }
 `;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// STYLES
-// ─────────────────────────────────────────────────────────────────────────────
 const s: Record<string, React.CSSProperties> = {
-
-  // root
   root: {
     minHeight: "100vh",
     background: "linear-gradient(160deg,#faf8ff 0%,#f3f0ff 45%,#f0faf4 80%,#fffdf4 100%)",
@@ -367,8 +363,6 @@ const s: Record<string, React.CSSProperties> = {
     color: "#2d2540",
     overflowX: "hidden",
   },
-
-  // ── header ──
   header: {
     background: "rgba(255,255,255,0.82)",
     backdropFilter: "blur(20px)",
@@ -386,38 +380,19 @@ const s: Record<string, React.CSSProperties> = {
     justifyContent: "space-between",
     gap: 12,
   },
-  logo: {
-    fontFamily: "'Playfair Display',serif",
-    fontSize: 24,
-    fontWeight: 800,
-    color: "#2d2540",
-    lineHeight: 1.1,
-  },
+  logo: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#2d2540", lineHeight: 1.1 },
   logoAccent: { color: "#7c6bb0" },
   tagline: { fontSize: 11, color: "#9488b8", marginTop: 2, letterSpacing: "0.04em" },
   headerBtns: { display: "flex", gap: 10, alignItems: "center" },
   headerLink: {
-    background: "transparent",
-    color: "#7c6bb0",
-    border: "1.5px solid #c3b5f5",
-    borderRadius: 22,
-    padding: "7px 18px",
-    fontWeight: 700,
-    fontSize: 13,
-    fontFamily: "'DM Sans',sans-serif",
-    cursor: "pointer",
-    transition: "all 0.2s",
+    background: "transparent", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
+    borderRadius: 22, padding: "7px 18px", fontWeight: 700, fontSize: 13,
+    fontFamily: "'DM Sans',sans-serif", cursor: "pointer", transition: "all 0.2s",
   },
   btnRegisterHeader: {
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
-    color: "#fff",
-    border: "none",
-    borderRadius: 22,
-    padding: "7px 18px",
-    fontWeight: 700,
-    fontSize: 13,
-    fontFamily: "'DM Sans',sans-serif",
-    cursor: "pointer",
+    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
+    border: "none", borderRadius: 22, padding: "7px 18px", fontWeight: 700,
+    fontSize: 13, fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
   },
   avatarWrap: {
     display: "flex", alignItems: "center", gap: 8,
@@ -437,466 +412,127 @@ const s: Record<string, React.CSSProperties> = {
     fontSize: 12, fontWeight: 600, cursor: "pointer",
     fontFamily: "'DM Sans',sans-serif", padding: "2px 4px",
   },
-
-  // ── hero ──
   hero: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    padding: "72px 28px 80px",
-    display: "grid",
-    gridTemplateColumns: "1fr 420px",
-    gap: 48,
-    alignItems: "center",
-    position: "relative",
+    maxWidth: 1100, margin: "0 auto", padding: "72px 28px 80px",
+    display: "grid", gridTemplateColumns: "1fr 420px",
+    gap: 48, alignItems: "center", position: "relative",
   },
   blob1: {
-    position: "absolute",
-    width: 420,
-    height: 420,
+    position: "absolute", width: 420, height: 420,
     background: "radial-gradient(circle, rgba(195,181,245,0.22) 0%, transparent 70%)",
-    borderRadius: "50%",
-    top: -60,
-    left: -100,
-    animation: "blobPulse 8s ease-in-out infinite",
-    pointerEvents: "none",
+    borderRadius: "50%", top: -60, left: -100,
+    animation: "blobPulse 8s ease-in-out infinite", pointerEvents: "none",
   },
   blob2: {
-    position: "absolute",
-    width: 320,
-    height: 320,
+    position: "absolute", width: 320, height: 320,
     background: "radial-gradient(circle, rgba(168,213,181,0.20) 0%, transparent 70%)",
-    borderRadius: "50%",
-    bottom: 0,
-    right: 60,
-    animation: "blobPulse 10s ease-in-out 2s infinite",
-    pointerEvents: "none",
+    borderRadius: "50%", bottom: 0, right: 60,
+    animation: "blobPulse 10s ease-in-out 2s infinite", pointerEvents: "none",
   },
   blob3: {
-    position: "absolute",
-    width: 200,
-    height: 200,
+    position: "absolute", width: 200, height: 200,
     background: "radial-gradient(circle, rgba(192,148,91,0.12) 0%, transparent 70%)",
-    borderRadius: "50%",
-    top: "40%",
-    left: "40%",
-    pointerEvents: "none",
+    borderRadius: "50%", top: "40%", left: "40%", pointerEvents: "none",
   },
   heroContent: { position: "relative", zIndex: 1 },
-
   heroBadge: {
-    display: "inline-flex",
-    alignItems: "center",
-    background: "#f0ecff",
-    color: "#7c6bb0",
-    border: "1px solid #ddd6f3",
-    borderRadius: 99,
-    padding: "6px 16px",
-    fontSize: 12,
-    fontWeight: 700,
-    letterSpacing: "0.03em",
-    marginBottom: 22,
+    display: "inline-flex", alignItems: "center",
+    background: "#f0ecff", color: "#7c6bb0", border: "1px solid #ddd6f3",
+    borderRadius: 99, padding: "6px 16px", fontSize: 12, fontWeight: 700,
+    letterSpacing: "0.03em", marginBottom: 22,
   },
-
   heroTitle: {
-    fontFamily: "'Playfair Display',serif",
-    fontSize: 58,
-    fontWeight: 900,
-    lineHeight: 1.13,
-    color: "#2d2540",
-    marginBottom: 20,
-    letterSpacing: "-0.02em",
+    fontFamily: "'Playfair Display',serif", fontSize: 58, fontWeight: 900,
+    lineHeight: 1.13, color: "#2d2540", marginBottom: 20, letterSpacing: "-0.02em",
   },
-  heroAccent: {
-    color: "#7c6bb0",
-    fontStyle: "italic",
-  },
-  heroSub: {
-    fontSize: 16,
-    lineHeight: 1.75,
-    color: "#6b6080",
-    maxWidth: 480,
-    marginBottom: 26,
-    fontWeight: 400,
-  },
-
-  catRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 36,
-  },
-  catPill: {
-    padding: "5px 14px",
-    borderRadius: 99,
-    fontSize: 12,
-    fontWeight: 700,
-    border: "1.5px solid",
-    letterSpacing: "0.03em",
-  },
-
-  ctaRow: {
-    display: "flex",
-    gap: 14,
-    flexWrap: "wrap",
-    marginBottom: 44,
-  },
+  heroAccent: { color: "#7c6bb0", fontStyle: "italic" },
+  heroSub: { fontSize: 16, lineHeight: 1.75, color: "#6b6080", maxWidth: 480, marginBottom: 26, fontWeight: 400 },
+  catRow: { display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 36 },
+  catPill: { padding: "5px 14px", borderRadius: 99, fontSize: 12, fontWeight: 700, border: "1.5px solid", letterSpacing: "0.03em" },
+  ctaRow: { display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 44 },
   btnPrimary: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
-    color: "#fff",
-    border: "none",
-    borderRadius: 14,
-    padding: "14px 28px",
-    fontSize: 15,
-    fontWeight: 700,
-    fontFamily: "'DM Sans',sans-serif",
-    cursor: "pointer",
-    boxShadow: "0 4px 20px rgba(124,107,176,0.28)",
-    letterSpacing: "0.02em",
+    display: "inline-flex", alignItems: "center", gap: 6,
+    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
+    border: "none", borderRadius: 14, padding: "14px 28px", fontSize: 15,
+    fontWeight: 700, fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
+    boxShadow: "0 4px 20px rgba(124,107,176,0.28)", letterSpacing: "0.02em",
   },
   btnSecondary: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    background: "rgba(255,255,255,0.85)",
-    color: "#7c6bb0",
-    border: "1.5px solid #c3b5f5",
-    borderRadius: 14,
-    padding: "14px 28px",
-    fontSize: 15,
-    fontWeight: 700,
-    fontFamily: "'DM Sans',sans-serif",
-    cursor: "pointer",
-    backdropFilter: "blur(8px)",
-    letterSpacing: "0.02em",
+    display: "inline-flex", alignItems: "center", gap: 6,
+    background: "rgba(255,255,255,0.85)", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
+    borderRadius: 14, padding: "14px 28px", fontSize: 15, fontWeight: 700,
+    fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
+    backdropFilter: "blur(8px)", letterSpacing: "0.02em",
   },
   btnAI: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    background: "linear-gradient(135deg,#c3b5f5,#a8d5b5)",
-    color: "#2d2540",
-    border: "none",
-    borderRadius: 14,
-    padding: "14px 28px",
-    fontSize: 15,
-    fontWeight: 700,
-    fontFamily: "'DM Sans',sans-serif",
-    cursor: "pointer",
-    letterSpacing: "0.02em",
-    boxShadow: "0 4px 16px rgba(124,107,176,0.20)",
+    display: "inline-flex", alignItems: "center", gap: 6,
+    background: "linear-gradient(135deg,#c3b5f5,#a8d5b5)", color: "#2d2540",
+    border: "none", borderRadius: 14, padding: "14px 28px", fontSize: 15,
+    fontWeight: 700, fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
+    letterSpacing: "0.02em", boxShadow: "0 4px 16px rgba(124,107,176,0.20)",
   },
   btnGhost: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    background: "rgba(255,255,255,0.15)",
-    color: "#fff",
-    border: "1.5px solid rgba(255,255,255,0.35)",
-    borderRadius: 14,
-    padding: "14px 28px",
-    fontSize: 15,
-    fontWeight: 700,
-    fontFamily: "'DM Sans',sans-serif",
-    cursor: "pointer",
-    backdropFilter: "blur(8px)",
-    letterSpacing: "0.02em",
+    display: "inline-flex", alignItems: "center", gap: 6,
+    background: "rgba(255,255,255,0.15)", color: "#fff",
+    border: "1.5px solid rgba(255,255,255,0.35)", borderRadius: 14,
+    padding: "14px 28px", fontSize: 15, fontWeight: 700,
+    fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
+    backdropFilter: "blur(8px)", letterSpacing: "0.02em",
   },
-
   statsStrip: {
-    display: "flex",
-    gap: 0,
-    background: "rgba(255,255,255,0.75)",
-    border: "1px solid #ede9fa",
-    borderRadius: 16,
-    backdropFilter: "blur(12px)",
-    overflow: "hidden",
-    width: "fit-content",
+    display: "flex", gap: 0, background: "rgba(255,255,255,0.75)",
+    border: "1px solid #ede9fa", borderRadius: 16,
+    backdropFilter: "blur(12px)", overflow: "hidden", width: "fit-content",
   },
-  statItem: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "14px 24px",
-    borderRight: "1px solid #ede9fa",
-  },
-  statVal: {
-    fontFamily: "'Playfair Display',serif",
-    fontSize: 24,
-    fontWeight: 800,
-    color: "#7c6bb0",
-    lineHeight: 1,
-  },
-  statLabel: {
-    fontSize: 11,
-    color: "#9488b8",
-    fontWeight: 600,
-    marginTop: 4,
-    textTransform: "uppercase",
-    letterSpacing: "0.06em",
-  },
-
-  // ── floating card ──
+  statItem: { display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 24px", borderRight: "1px solid #ede9fa" },
+  statVal: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#7c6bb0", lineHeight: 1 },
+  statLabel: { fontSize: 11, color: "#9488b8", fontWeight: 600, marginTop: 4, textTransform: "uppercase", letterSpacing: "0.06em" },
   heroCard: {
-    position: "relative",
-    zIndex: 1,
-    background: "#fff",
-    borderRadius: 26,
+    position: "relative", zIndex: 1, background: "#fff", borderRadius: 26,
     padding: "28px 28px 22px",
     boxShadow: "0 24px 72px rgba(124,107,176,0.18), 0 4px 16px rgba(0,0,0,0.06)",
     border: "1px solid #ede9fa",
   },
   cardHeader: { display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" },
-  cardChip: {
-    background: "#f0ecff",
-    color: "#7c6bb0",
-    borderRadius: 20,
-    padding: "4px 12px",
-    fontSize: 11,
-    fontWeight: 700,
-    border: "1px solid #ddd6f3",
-  },
-  cardQ: {
-    fontFamily: "'Playfair Display',serif",
-    fontSize: 17,
-    fontWeight: 700,
-    lineHeight: 1.55,
-    color: "#2d2540",
-    marginBottom: 18,
-  },
-  cardOpt: {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    padding: "10px 13px",
-    background: "#faf8ff",
-    border: "1.5px solid #ddd6f3",
-    borderRadius: 11,
-    marginBottom: 7,
-    cursor: "default",
-  },
-  cardOptSel: {
-    borderColor: "#7c6bb0",
-    background: "#f0ecff",
-    boxShadow: "0 0 0 3px rgba(124,107,176,0.12)",
-  },
-  cardLetter: {
-    minWidth: 26,
-    height: 26,
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 10,
-    fontWeight: 800,
-    flexShrink: 0,
-  },
+  cardChip: { background: "#f0ecff", color: "#7c6bb0", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, border: "1px solid #ddd6f3" },
+  cardQ: { fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 700, lineHeight: 1.55, color: "#2d2540", marginBottom: 18 },
+  cardOpt: { display: "flex", alignItems: "center", gap: 10, padding: "10px 13px", background: "#faf8ff", border: "1.5px solid #ddd6f3", borderRadius: 11, marginBottom: 7, cursor: "default" },
+  cardOptSel: { borderColor: "#7c6bb0", background: "#f0ecff", boxShadow: "0 0 0 3px rgba(124,107,176,0.12)" },
+  cardLetter: { minWidth: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, flexShrink: 0 },
   cardOptText: { flex: 1, fontSize: 13, fontWeight: 500, color: "#2d2540" },
-  cardCheck: {
-    width: 20,
-    height: 20,
-    borderRadius: "50%",
-    background: "#7c6bb0",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: 10,
-    fontWeight: 800,
-    flexShrink: 0,
-  },
-  cardTimerBar: {
-    marginTop: 14,
-    position: "relative",
-    height: 28,
-    background: "#f5f3ff",
-    borderRadius: 8,
-    overflow: "hidden",
-    display: "flex",
-    alignItems: "center",
-  },
-  cardTimerFill: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    height: "100%",
-    width: "70%",
-    background: "#5b8a52",
-    opacity: 0.18,
-    borderRadius: 8,
-  },
-  cardTimerLabel: {
-    position: "relative",
-    zIndex: 1,
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#5b8a52",
-    paddingLeft: 10,
-  },
-
-  // ── features section ──
-  featSection: {
-    background: "rgba(255,255,255,0.55)",
-    borderTop: "1px solid #ede9fa",
-    borderBottom: "1px solid #ede9fa",
-    backdropFilter: "blur(12px)",
-    padding: "80px 28px",
-  },
+  cardCheck: { width: 20, height: 20, borderRadius: "50%", background: "#7c6bb0", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, flexShrink: 0 },
+  cardTimerBar: { marginTop: 14, position: "relative", height: 28, background: "#f5f3ff", borderRadius: 8, overflow: "hidden", display: "flex", alignItems: "center" },
+  cardTimerFill: { position: "absolute", left: 0, top: 0, height: "100%", width: "70%", background: "#5b8a52", opacity: 0.18, borderRadius: 8 },
+  cardTimerLabel: { position: "relative", zIndex: 1, fontSize: 12, fontWeight: 700, color: "#5b8a52", paddingLeft: 10 },
+  featSection: { background: "rgba(255,255,255,0.55)", borderTop: "1px solid #ede9fa", borderBottom: "1px solid #ede9fa", backdropFilter: "blur(12px)", padding: "80px 28px" },
   sectionInner: { maxWidth: 1100, margin: "0 auto" },
-  sectionEyebrow: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#7c6bb0",
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  sectionTitle: {
-    fontFamily: "'Playfair Display',serif",
-    fontSize: 42,
-    fontWeight: 800,
-    color: "#2d2540",
-    textAlign: "center",
-    marginBottom: 52,
-    lineHeight: 1.25,
-    letterSpacing: "-0.01em",
-  },
+  sectionEyebrow: { fontSize: 12, fontWeight: 700, color: "#7c6bb0", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10, textAlign: "center" },
+  sectionTitle: { fontFamily: "'Playfair Display',serif", fontSize: 42, fontWeight: 800, color: "#2d2540", textAlign: "center", marginBottom: 52, lineHeight: 1.25, letterSpacing: "-0.01em" },
   sectionAccent: { color: "#7c6bb0", fontStyle: "italic" },
-
-  featGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(3, 1fr)",
-    gap: 20,
-  },
-  featCard: {
-    background: "#fff",
-    borderRadius: 20,
-    padding: "28px 26px",
-    border: "1px solid #ede9fa",
-    boxShadow: "0 2px 16px rgba(124,107,176,0.07)",
-    cursor: "default",
-  },
+  featGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 },
+  featCard: { background: "#fff", borderRadius: 20, padding: "28px 26px", border: "1px solid #ede9fa", boxShadow: "0 2px 16px rgba(124,107,176,0.07)", cursor: "default" },
   featIcon: { fontSize: 32, display: "block", marginBottom: 14 },
-  featTitle: {
-    fontFamily: "'Playfair Display',serif",
-    fontSize: 18,
-    fontWeight: 700,
-    color: "#2d2540",
-    marginBottom: 8,
-  },
-  featDesc: {
-    fontSize: 14,
-    color: "#6b6080",
-    lineHeight: 1.7,
-    fontWeight: 400,
-  },
-
-  // ── bottom CTA section ──
-  ctaSection: {
-    background: "linear-gradient(135deg,#6b50b0 0%,#5b8a52 100%)",
-    padding: "88px 28px",
-    position: "relative",
-    overflow: "hidden",
-    textAlign: "center",
-  },
-  ctaBlob: {
-    position: "absolute",
-    width: 500,
-    height: 500,
-    background: "rgba(255,255,255,0.07)",
-    borderRadius: "50%",
-    top: -150,
-    right: -100,
-    pointerEvents: "none",
-  },
+  featTitle: { fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#2d2540", marginBottom: 8 },
+  featDesc: { fontSize: 14, color: "#6b6080", lineHeight: 1.7, fontWeight: 400 },
+  ctaSection: { background: "linear-gradient(135deg,#6b50b0 0%,#5b8a52 100%)", padding: "88px 28px", position: "relative", overflow: "hidden", textAlign: "center" },
+  ctaBlob: { position: "absolute", width: 500, height: 500, background: "rgba(255,255,255,0.07)", borderRadius: "50%", top: -150, right: -100, pointerEvents: "none" },
   ctaInner: { maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 },
-  ctaEyebrow: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "rgba(255,255,255,0.65)",
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    marginBottom: 12,
-  },
-  ctaTitle: {
-    fontFamily: "'Playfair Display',serif",
-    fontSize: 48,
-    fontWeight: 900,
-    color: "#fff",
-    lineHeight: 1.18,
-    marginBottom: 16,
-    letterSpacing: "-0.02em",
-  },
+  ctaEyebrow: { fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.65)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 },
+  ctaTitle: { fontFamily: "'Playfair Display',serif", fontSize: 48, fontWeight: 900, color: "#fff", lineHeight: 1.18, marginBottom: 16, letterSpacing: "-0.02em" },
   ctaTitleAccent: { fontStyle: "italic", color: "#c3f5d5" },
-  ctaSub: {
-    fontSize: 16,
-    color: "rgba(255,255,255,0.75)",
-    lineHeight: 1.7,
-    marginBottom: 38,
-    fontWeight: 400,
-  },
-  ctaBtns: {
-    display: "flex",
-    gap: 14,
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-
-  // ── footer ──
-  footer: {
-    borderTop: "1px solid #e8e2f8",
-    padding: "28px 48px 24px",
-    background: "rgba(255,255,255,0.82)",
-    backdropFilter: "blur(12px)",
-  },
-  footerTop: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: 12,
-    marginBottom: 18,
-  },
+  ctaSub: { fontSize: 16, color: "rgba(255,255,255,0.75)", lineHeight: 1.7, marginBottom: 38, fontWeight: 400 },
+  ctaBtns: { display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" },
+  footer: { borderTop: "1px solid #e8e2f8", padding: "28px 48px 24px", background: "rgba(255,255,255,0.82)", backdropFilter: "blur(12px)" },
+  footerTop: { maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 18 },
   footerLeft: { display: "flex", flexDirection: "column", gap: 4 },
-  footerLogo: {
-    fontFamily: "'Playfair Display',serif",
-    fontSize: 18,
-    fontWeight: 800,
-    color: "#2d2540",
-  },
+  footerLogo: { fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 800, color: "#2d2540" },
   footerTagline: { fontSize: 11, color: "#9488b8", fontWeight: 500, letterSpacing: "0.04em" },
   footerLinks: { display: "flex", alignItems: "center", gap: 10 },
   footerLink: { fontSize: 13, color: "#7c6bb0", fontWeight: 600, textDecoration: "none" },
-  footerDot: {
-    width: 4, height: 4, borderRadius: "50%", background: "#c3b5f5", display: "inline-block",
-  },
-  footerDivider: {
-    maxWidth: 1100,
-    margin: "0 auto 16px",
-    height: 1,
-    background: "linear-gradient(90deg, transparent, #e8e2f8 30%, #e8e2f8 70%, transparent)",
-  },
-  footerBottom: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: 8,
-  },
+  footerDot: { width: 4, height: 4, borderRadius: "50%", background: "#c3b5f5", display: "inline-block" },
+  footerDivider: { maxWidth: 1100, margin: "0 auto 16px", height: 1, background: "linear-gradient(90deg, transparent, #e8e2f8 30%, #e8e2f8 70%, transparent)" },
+  footerBottom: { maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 },
   footerCopy: { fontSize: 12, color: "#b0a8c8", fontWeight: 500 },
   footerCredit: { fontSize: 12, color: "#9488b8", fontWeight: 500 },
-  footerName: {
-    fontFamily: "'Playfair Display',serif",
-    fontWeight: 700,
-    fontSize: 13,
-    color: "#7c6bb0",
-    fontStyle: "italic",
-  },
+  footerName: { fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: 13, color: "#7c6bb0", fontStyle: "italic" },
 };
