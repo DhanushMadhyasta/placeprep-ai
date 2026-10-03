@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import GoogleLoginButton from "@/components/GoogleLoginButton";
+import { AuthShell, Field, PasswordField, ErrorBanner, PrimaryButton, Divider } from "@/components/auth-shell";
 
 function LoginForm() {
   const router = useRouter();
@@ -47,81 +48,43 @@ function LoginForm() {
   };
 
   return (
-    <main style={s.root}>
-      <style>{css}</style>
+    <AuthShell tag="SIGN IN" title="Welcome back" sub="Sign in to continue your prep journey.">
+      {reason === "access_revoked" && (
+        <div className="mb-5"><ErrorBanner>Your access has been revoked. Please contact the administrator.</ErrorBanner></div>
+      )}
 
-      <div style={s.blob1} />
-      <div style={s.blob2} />
+      <GoogleLoginButton />
+      <Divider text="or use username" />
 
-      <div style={s.card} className="fadeUp auth-card">
-        {/* Logo */}
-        <div style={s.logoRow}>
-          <a href="/" style={s.logoLink}>
-            <span style={s.logo}>PlacePrep <span style={s.logoAI}>AI</span></span>
-          </a>
-        </div>
-        <h1 style={s.title} className="auth-title">Welcome Back</h1>
-        <p style={s.sub} className="auth-sub">Sign in to continue your prep journey</p>
-
-        {/* Access revoked banner — shown when redirected after user deletion */}
-        {reason === "access_revoked" && (
-          <div style={s.revokedBanner}>
-            Your access has been revoked. Please contact the administrator.
-          </div>
-        )}
-
-        <GoogleLoginButton />
-
-        <div style={s.divider}>
-          <div style={s.dividerLine} />
-          <span style={s.dividerText}>or continue with username</span>
-          <div style={s.dividerLine} />
-        </div>
-
-        <div style={s.fields}>
-          <div style={s.fieldGroup}>
-            <label style={s.label}>Username</label>
-            <input
-              style={s.input}
-              placeholder="your_username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
-              onKeyDown={handleKeyDown}
-              autoComplete="username"
-              autoFocus
-            />
-          </div>
-
-          <div style={s.fieldGroup}>
-            <label style={s.label}>Password</label>
-            <input
-              style={s.input}
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={handleKeyDown}
-              autoComplete="current-password"
-            />
-          </div>
-        </div>
-
-        {error && <div style={s.errorBanner}>{error}</div>}
-
-        <button
-          style={{ ...s.primaryBtn, opacity: loading ? 0.7 : 1 }}
-          onClick={handleLogin}
-          disabled={loading}
-        >
-          {loading ? "Signing In…" : "Sign In →"}
-        </button>
-
-        <p style={s.switchText}>
-          New here?{" "}
-          <a href="/register" style={s.switchLink}>Create an Account</a>
-        </p>
+      <div className="space-y-4 mb-5">
+        <Field
+          label="Username"
+          placeholder="your_username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+          onKeyDown={handleKeyDown}
+          autoComplete="username"
+          autoFocus
+        />
+        <PasswordField
+          label="Password"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
+          autoComplete="current-password"
+        />
       </div>
-    </main>
+
+      {error && <div className="mb-5"><ErrorBanner>{error}</ErrorBanner></div>}
+
+      <PrimaryButton onClick={handleLogin} loading={loading}>{loading ? "SIGNING IN..." : "SIGN IN"}</PrimaryButton>
+
+      <p className="mt-6 text-sm text-black/45 text-center">
+        New here?{" "}
+        <a href="/register" className="underline underline-offset-4 decoration-black/20 hover:decoration-black/60 transition-colors" style={{ color: "#111" }}>Create an account</a>
+      </p>
+    </AuthShell>
   );
 }
 
@@ -133,94 +96,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { overflow-x: hidden; width: 100%; }
-  body { font-family: 'IBM Plex Sans',sans-serif; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .fadeUp { animation: fadeUp 0.5s ease both; }
-  input:focus { outline: none; border-color: #111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,0.12); }
-  input::placeholder { color: #aaa; }
-  button { transition: all 0.2s ease; font-family: 'IBM Plex Sans',sans-serif; }
-  button:hover:not(:disabled) { transform: translateY(-2px); }
-  a { transition: opacity 0.2s; text-decoration: none; }
-  a:hover { opacity: 0.75; }
-
-  @media (max-width: 480px) {
-    .auth-card { padding: 32px 20px !important; border-radius: 20px !important; }
-    .auth-title { font-size: 24px !important; }
-    .auth-sub   { margin-bottom: 22px !important; }
-  }
-`;
-
-const s: Record<string, React.CSSProperties> = {
-  root: {
-    minHeight: "100vh",
-    background: "#F5F4F0",
-    display: "flex", alignItems: "center", justifyContent: "center",
-    padding: "24px 16px", fontFamily: "'IBM Plex Sans',sans-serif",
-    position: "relative", overflowX: "hidden",
-  },
-  blob1: {
-    position: "fixed", width: 400, height: 400, borderRadius: "50%",
-    background: "transparent",
-    top: -100, right: -100, pointerEvents: "none",
-  },
-  blob2: {
-    position: "fixed", width: 350, height: 350, borderRadius: "50%",
-    background: "transparent",
-    bottom: -80, left: -80, pointerEvents: "none",
-  },
-  card: {
-    background: "#fff", backdropFilter: "blur(24px)",
-    borderRadius: 28, padding: "44px 36px",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.06)",
-    border: "1px solid rgba(221,214,243,0.6)",
-    width: "100%", maxWidth: 420, position: "relative", zIndex: 1,
-  },
-  logoRow: { marginBottom: 28, textAlign: "center" as const },
-  logoLink: { textDecoration: "none" },
-  logo: { fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 22, fontWeight: 500, color: "#111" },
-  logoAI: { color: "#111" },
-  title: {
-    fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 30,
-    fontWeight: 500, color: "#111", textAlign: "center" as const, marginBottom: 6,
-  },
-  sub: { fontSize: 14, color: "#777", textAlign: "center" as const, marginBottom: 32 },
-  revokedBanner: {
-    background: "#fff0f0", border: "1.5px solid #f5a5a5",
-    borderRadius: 12, padding: "13px 16px", marginBottom: 20,
-    color: "#c05b5b", fontWeight: 600, fontSize: 13, textAlign: "center" as const,
-  },
-  fields: { display: "flex", flexDirection: "column" as const, gap: 18, marginBottom: 22 },
-  fieldGroup: { display: "flex", flexDirection: "column" as const, gap: 6 },
-  label: { fontSize: 12, fontWeight: 700, color: "#555", textTransform: "uppercase" as const, letterSpacing: "0.06em" },
-  input: {
-    padding: "13px 14px", borderRadius: 12, border: "1.5px solid #e5e3dd",
-    fontSize: 15, fontFamily: "'IBM Plex Sans',sans-serif", color: "#111",
-    background: "#fafaf8", transition: "all 0.2s", width: "100%",
-  },
-  errorBanner: {
-    background: "#fce8e8", border: "1.5px solid #f5a5a5", borderRadius: 11,
-    padding: "11px 14px", fontSize: 13, fontWeight: 600, color: "#b71c1c",
-    marginBottom: 18,
-  },
-  primaryBtn: {
-    width: "100%", padding: "15px",
-    background: "#111",
-    color: "#fff", border: "none", borderRadius: 14, fontSize: 15,
-    fontWeight: 700, cursor: "pointer",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.28)", letterSpacing: "0.02em",
-    marginBottom: 18,
-  },
-  divider: { display: "flex", alignItems: "center", gap: 10, margin: "20px 0 4px" },
-  dividerLine: { flex: 1, height: 1, background: "#ece9e2" },
-  dividerText: { fontSize: 12, color: "#aaa", fontWeight: 600, whiteSpace: "nowrap" as const },
-  switchText: { fontSize: 13, color: "#777", textAlign: "center" as const },
-  switchLink: { color: "#111", fontWeight: 700 },
-};
