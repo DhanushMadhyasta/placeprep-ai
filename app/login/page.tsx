@@ -66,7 +66,7 @@ function LoginForm() {
         {/* Access revoked banner — shown when redirected after user deletion */}
         {reason === "access_revoked" && (
           <div style={s.revokedBanner}>
-            🚫 Your access has been revoked. Please contact the administrator.
+            Your access has been revoked. Please contact the administrator.
           </div>
         )}
 
@@ -106,7 +106,7 @@ function LoginForm() {
           </div>
         </div>
 
-        {error && <div style={s.errorBanner}>⚠️ {error}</div>}
+        {error && <div style={s.errorBanner}>{error}</div>}
 
         <button
           style={{ ...s.primaryBtn, opacity: loading ? 0.7 : 1 }}
@@ -135,18 +135,18 @@ export default function LoginPage() {
 }
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { overflow-x: hidden; width: 100%; }
-  body { font-family: 'DM Sans', sans-serif; }
+  body { font-family: 'IBM Plex Sans',sans-serif; }
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
   }
   .fadeUp { animation: fadeUp 0.5s ease both; }
-  input:focus { outline: none; border-color: #7c6bb0 !important; box-shadow: 0 0 0 3px rgba(124,107,176,0.12); }
-  input::placeholder { color: #b0a8c8; }
-  button { transition: all 0.2s ease; font-family: 'DM Sans', sans-serif; }
+  input:focus { outline: none; border-color: #111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,0.12); }
+  input::placeholder { color: #aaa; }
+  button { transition: all 0.2s ease; font-family: 'IBM Plex Sans',sans-serif; }
   button:hover:not(:disabled) { transform: translateY(-2px); }
   a { transition: opacity 0.2s; text-decoration: none; }
   a:hover { opacity: 0.75; }
@@ -161,37 +161,37 @@ const css = `
 const s: Record<string, React.CSSProperties> = {
   root: {
     minHeight: "100vh",
-    background: "linear-gradient(145deg,#faf8ff 0%,#f3f0ff 50%,#f0faf4 100%)",
+    background: "#F5F4F0",
     display: "flex", alignItems: "center", justifyContent: "center",
-    padding: "24px 16px", fontFamily: "'DM Sans',sans-serif",
+    padding: "24px 16px", fontFamily: "'IBM Plex Sans',sans-serif",
     position: "relative", overflowX: "hidden",
   },
   blob1: {
     position: "fixed", width: 400, height: 400, borderRadius: "50%",
-    background: "radial-gradient(circle,rgba(155,141,224,0.18),transparent 70%)",
+    background: "transparent",
     top: -100, right: -100, pointerEvents: "none",
   },
   blob2: {
     position: "fixed", width: 350, height: 350, borderRadius: "50%",
-    background: "radial-gradient(circle,rgba(107,176,154,0.15),transparent 70%)",
+    background: "transparent",
     bottom: -80, left: -80, pointerEvents: "none",
   },
   card: {
-    background: "rgba(255,255,255,0.92)", backdropFilter: "blur(24px)",
+    background: "#fff", backdropFilter: "blur(24px)",
     borderRadius: 28, padding: "44px 36px",
-    boxShadow: "0 20px 60px rgba(124,107,176,0.14), 0 4px 16px rgba(0,0,0,0.06)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.06)",
     border: "1px solid rgba(221,214,243,0.6)",
     width: "100%", maxWidth: 420, position: "relative", zIndex: 1,
   },
   logoRow: { marginBottom: 28, textAlign: "center" as const },
   logoLink: { textDecoration: "none" },
-  logo: { fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 800, color: "#2d2540" },
-  logoAI: { color: "#7c6bb0" },
+  logo: { fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 22, fontWeight: 500, color: "#111" },
+  logoAI: { color: "#111" },
   title: {
-    fontFamily: "'Playfair Display',serif", fontSize: 30,
-    fontWeight: 800, color: "#2d2540", textAlign: "center" as const, marginBottom: 6,
+    fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 30,
+    fontWeight: 500, color: "#111", textAlign: "center" as const, marginBottom: 6,
   },
-  sub: { fontSize: 14, color: "#9488b8", textAlign: "center" as const, marginBottom: 32 },
+  sub: { fontSize: 14, color: "#777", textAlign: "center" as const, marginBottom: 32 },
   revokedBanner: {
     background: "#fff0f0", border: "1.5px solid #f5a5a5",
     borderRadius: 12, padding: "13px 16px", marginBottom: 20,
@@ -199,11 +199,11 @@ const s: Record<string, React.CSSProperties> = {
   },
   fields: { display: "flex", flexDirection: "column" as const, gap: 18, marginBottom: 22 },
   fieldGroup: { display: "flex", flexDirection: "column" as const, gap: 6 },
-  label: { fontSize: 12, fontWeight: 700, color: "#6b5fa0", textTransform: "uppercase" as const, letterSpacing: "0.06em" },
+  label: { fontSize: 12, fontWeight: 700, color: "#555", textTransform: "uppercase" as const, letterSpacing: "0.06em" },
   input: {
-    padding: "13px 14px", borderRadius: 12, border: "1.5px solid #ddd6f3",
-    fontSize: 15, fontFamily: "'DM Sans',sans-serif", color: "#2d2540",
-    background: "#faf8ff", transition: "all 0.2s", width: "100%",
+    padding: "13px 14px", borderRadius: 12, border: "1.5px solid #e5e3dd",
+    fontSize: 15, fontFamily: "'IBM Plex Sans',sans-serif", color: "#111",
+    background: "#fafaf8", transition: "all 0.2s", width: "100%",
   },
   errorBanner: {
     background: "#fce8e8", border: "1.5px solid #f5a5a5", borderRadius: 11,
@@ -212,15 +212,15 @@ const s: Record<string, React.CSSProperties> = {
   },
   primaryBtn: {
     width: "100%", padding: "15px",
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
+    background: "#111",
     color: "#fff", border: "none", borderRadius: 14, fontSize: 15,
     fontWeight: 700, cursor: "pointer",
-    boxShadow: "0 4px 20px rgba(124,107,176,0.28)", letterSpacing: "0.02em",
+    boxShadow: "0 4px 20px rgba(0,0,0,0.28)", letterSpacing: "0.02em",
     marginBottom: 18,
   },
   divider: { display: "flex", alignItems: "center", gap: 10, margin: "20px 0 4px" },
-  dividerLine: { flex: 1, height: 1, background: "#ede9fa" },
-  dividerText: { fontSize: 12, color: "#b0a8c8", fontWeight: 600, whiteSpace: "nowrap" as const },
-  switchText: { fontSize: 13, color: "#9488b8", textAlign: "center" as const },
-  switchLink: { color: "#7c6bb0", fontWeight: 700 },
+  dividerLine: { flex: 1, height: 1, background: "#ece9e2" },
+  dividerText: { fontSize: 12, color: "#aaa", fontWeight: 600, whiteSpace: "nowrap" as const },
+  switchText: { fontSize: 13, color: "#777", textAlign: "center" as const },
+  switchLink: { color: "#111", fontWeight: 700 },
 };

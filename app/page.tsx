@@ -1,33 +1,72 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { IntroAnimation } from "@/components/intro-animation";
+import { PixelIcon } from "@/components/pixel-icon";
+import { RevealText } from "@/components/reveal-text";
+import { StackingAgentCards } from "@/components/stacking-agent-cards";
+import { MobileNav } from "@/components/mobile-nav";
+
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, inView };
+}
+
+function BentoCard({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const { ref, inView } = useInView(0.1);
+  return (
+    <div ref={ref} className={`group relative rounded-2xl border border-black/[0.07] bg-white overflow-hidden hover:border-black/[0.15] hover:bg-[#fafaf8] ${className}`}
+      style={{ opacity: inView ? 1 : 0, transform: inView ? "translateY(0)" : "translateY(28px)", transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms, border-color 0.3s ease, background-color 0.3s ease` }}>
+      {children}
+    </div>
+  );
+}
+
+function Tag({ children }: { children: React.ReactNode }) {
+  return <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] tracking-widest text-black/40 bg-black/[0.04]">{children}</span>;
+}
+
+const PLEX = { fontFamily: '"IBM Plex Sans", sans-serif' };
+const fade = (on: boolean, d = 0, blur = 16) => ({
+  opacity: on ? 1 : 0,
+  filter: on ? "blur(0px)" : `blur(${blur}px)`,
+  transform: on ? "translateY(0px)" : "translateY(24px)",
+  transition: `all 0.9s cubic-bezier(0.16,1,0.3,1) ${d}ms`,
+});
 
 const FEATURES = [
-  { icon: "🧠", title: "200+ Questions", desc: "Curated from real FAANG placement rounds — Aptitude, DSA, System Design & Reasoning." },
-  { icon: "⏱", title: "60-Second Timer", desc: "Every question is timed. Train under pressure so exams feel easy." },
-  { icon: "💡", title: "Smart Hints", desc: "Two progressive hints per question guide you without giving away the answer." },
-  { icon: "🤖", title: "AI Question Mode", desc: "Stuck in a loop? Generate a fresh question on-demand using Gemini AI." },
-  { icon: "📊", title: "Dashboard Analytics", desc: "Track attempts, accuracy trends, and your best score over time." },
-  { icon: "🎯", title: "Placement Ready Grade", desc: "Get a verdict — Placement Ready / Good / Keep Practising — after every session." },
+  { title: "Placement question bank", desc: "Curated questions across Aptitude, DSA, System Design and Reasoning, shuffled fresh every session." },
+  { title: "60-second timer", desc: "Every question is timed. Train under pressure so the real exam feels easier." },
+  { title: "Smart hints", desc: "Two progressive hints per question guide you without giving the answer away." },
+  { title: "AI question mode", desc: "Generate a fresh question on demand with Gemini when you want something new." },
+  { title: "Dashboard analytics", desc: "Track attempts, average accuracy and your best score over time." },
+  { title: "Placement Ready grade", desc: "Get a verdict after every session: Placement Ready, On the Right Track, or Keep Practising." },
 ];
-
-const CATEGORIES = [
-  { label: "Aptitude", color: "#7c6bb0", bg: "#f0ecff", border: "#ddd6f3" },
-  { label: "DSA", color: "#5b8a52", bg: "#e8f5e9", border: "#a5d6a7" },
-  { label: "System Design", color: "#5b6bb0", bg: "#eef0ff", border: "#b5bdf5" },
-  { label: "Reasoning", color: "#6b50b0", bg: "#ede8ff", border: "#c3b5f5" },
-  { label: "OOP", color: "#c0945b", bg: "#fff3e0", border: "#ffcc80" },
-  { label: "DBMS", color: "#5b8ab0", bg: "#e3f2fd", border: "#90caf9" },
-];
+const STEPS = [
+  { n: "01", title: "Start", desc: "Begin a quiz of 25 random questions from the placement bank." },
+  { n: "02", title: "Answer", desc: "60 seconds a question, two attempts, and hints when you are stuck." },
+  { n: "03", title: "Learn", desc: "Read the explanation for every question before moving on." },
+  { n: "04", title: "Track", desc: "Watch accuracy and best score climb on your dashboard." },
+]
+const ROW1 = ["Aptitude", "DSA", "System Design", "Reasoning", "OOP", "DBMS", "Time & Work", "Profit & Loss", "Percentages", "Trees"];
+const ROW2 = ["Graphs", "Dynamic Programming", "SQL Joins", "Normalization", "ACID", "Process Scheduling", "Deadlocks", "Memory Management", "LLD Patterns", "Scalability"];
 
 export default function HomePage() {
   const router = useRouter();
-  const [visible, setVisible] = useState(false);
+  const [heroReady, setHeroReady] = useState(false);
+  const handleIntroDone = useCallback(() => setHeroReady(true), []);
   const [user, setUser] = useState<{ fullName: string; username: string } | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const validateSession = async () => {
@@ -67,9 +106,7 @@ export default function HomePage() {
     };
     window.addEventListener("storage", onStorage);
 
-    const t = setTimeout(() => setVisible(true), 80);
     return () => {
-      clearTimeout(t);
       clearInterval(interval);
       window.removeEventListener("storage", onStorage);
     };
@@ -85,467 +122,188 @@ export default function HomePage() {
 
   const firstName = user?.fullName?.split(" ")[0] ?? "";
 
-  const renderHeader = () => (
-    <header style={s.header}>
-      <div style={s.headerInner} className="header-inner">
-        <div>
-          <h1 style={s.logo} className="logo-text">PlacePrep <span style={s.logoAccent}>AI</span></h1>
-          <p style={s.tagline} className="header-tagline">Aptitude · Reasoning · Technical · System Design</p>
-        </div>
-
-        {authChecked && (
-          <div style={s.headerBtns} className="header-btns">
-            {user ? (
-              <>
-                <a href="/quiz" style={s.headerLink} className="header-link">Quiz</a>
-                <a href="/ai-quiz" style={s.headerLink} className="header-link">🤖 AI</a>
-                <a href="/dashboard" style={s.headerLink} className="header-link">Dashboard</a>
-                <div style={s.avatarWrap} className="avatar-wrap">
-                  <div style={s.avatarCircle}>{firstName[0]?.toUpperCase()}</div>
-                  <span style={s.avatarName} className="avatar-name">{firstName}</span>
-                  <button style={s.logoutBtn} className="logout-btn" onClick={handleLogout}>Sign Out</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <a href="/login" style={s.headerLink} className="header-link">Sign In</a>
-                <a href="/register" style={s.btnRegisterHeader} className="header-link">Register →</a>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </header>
-  );
-
-  const renderHeroCTA = () => (
-    <div style={s.ctaRow} className="fadeUp-d5 cta-row">
-      {user ? (
-        <>
-          <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">🚀 &nbsp;Start Quiz</a>
-          <a href="/ai-quiz" style={s.btnAI} className="btn-hover btn-ai">🤖 &nbsp;AI Questions</a>
-          <a href="/dashboard" style={s.btnSecondary} className="btn-hover btn-secondary">📊 &nbsp;Dashboard</a>
-        </>
-      ) : (
-        <>
-          <a href="/register" style={s.btnPrimary} className="btn-hover btn-primary">🚀 &nbsp;Get Started Free</a>
-          <a href="/login" style={s.btnSecondary} className="btn-hover btn-secondary">Sign In →</a>
-        </>
-      )}
+  const Head = ({ icon, tag, title }: { icon: "platform" | "agents" | "workflow" | "integrations"; tag: string; title: string }) => (
+    <div className="mb-16">
+      <PixelIcon type={icon} size={40} />
+      <div className="mt-4"><Tag>{tag}</Tag></div>
+      <RevealText className="mt-5 text-4xl md:text-5xl font-light tracking-tight leading-[1.05]">{title}</RevealText>
     </div>
   );
 
-  const renderBottomCTA = () => (
-    <div style={s.ctaBtns} className="cta-btns">
-      {user ? (
-        <>
-          <a href="/quiz" style={s.btnPrimary} className="btn-hover btn-primary">🚀 &nbsp;Start Quiz Now</a>
-          <a href="/ai-quiz" style={s.btnAI} className="btn-hover btn-ai">🤖 &nbsp;AI Questions</a>
-          <a href="/dashboard" style={s.btnGhost} className="btn-hover">📊 &nbsp;View Dashboard</a>
-        </>
-      ) : (
-        <>
-          <a href="/register" style={s.btnPrimary} className="btn-hover btn-primary">🚀 &nbsp;Create Free Account</a>
-          <a href="/login" style={s.btnGhost} className="btn-hover">Sign In →</a>
-        </>
-      )}
-    </div>
+  const primary = "px-8 py-3 bg-[#111] text-white text-sm rounded-xl hover:bg-[#333] transition-colors tracking-widest";
+  const ghost = "px-8 py-3 border border-black/10 text-black/60 text-sm rounded-xl hover:border-black/25 hover:text-black transition-colors tracking-widest";
+  const ctas = user ? (
+    <>
+      <a href="/quiz" className={primary} style={{ color: "#fff" }}>START QUIZ</a>
+      <a href="/ai-quiz" className={ghost} style={{ color: "rgba(0,0,0,0.6)" }}>AI QUESTIONS</a>
+      <a href="/dashboard" className={ghost} style={{ color: "rgba(0,0,0,0.6)" }}>DASHBOARD</a>
+    </>
+  ) : (
+    <>
+      <a href="/register" className={primary} style={{ color: "#fff" }}>GET STARTED FREE</a>
+      <a href="/login" className={ghost} style={{ color: "rgba(0,0,0,0.6)" }}>SIGN IN</a>
+    </>
   );
 
   return (
-    <main style={s.root}>
-      <style>{css}</style>
+    <div className="bg-[#F5F4F0] text-[#111] min-h-screen font-sans antialiased">
+      <IntroAnimation onDone={handleIntroDone} />
+      <MobileNav loggedIn={!!user} />
 
-      {renderHeader()}
+      {authChecked && user && (
+        <div className="fixed top-6 right-5 z-[60] hidden md:flex items-center gap-3 text-[11px] text-black/50 tracking-wide">
+          <span>{firstName}</span>
+          <button onClick={handleLogout} className="px-3 py-1.5 rounded-lg border border-black/10 hover:bg-black/[0.03]">SIGN OUT</button>
+        </div>
+      )}
 
-      <section style={s.hero} ref={heroRef} className="hero-grid">
-        <div style={s.blob1} />
-        <div style={s.blob2} />
-        <div style={s.blob3} />
-
-        <div style={{ ...s.heroContent, opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(28px)", transition: "opacity 0.7s ease, transform 0.7s ease" }} className="hero-content">
-          <div style={s.heroBadge} className="fadeUp-d1 hero-badge">
-            {user ? `👋 Welcome back, ${firstName}!` : "✨ \u00A0Trusted by 10,000+ placement aspirants"}
-          </div>
-
-          <h2 style={s.heroTitle} className="fadeUp-d2 hero-title">
-            Crack Your<br />
-            <span style={s.heroAccent}>Dream Company</span><br />
-            Interview
-          </h2>
-
-          <p style={s.heroSub} className="fadeUp-d3 hero-sub">
-            Practice 200+ hand-picked placement questions across DSA, Aptitude,
-            System Design &amp; Reasoning — with timed sessions, smart hints,
-            and AI-generated challenges.
+      {/* HERO */}
+      <section className="relative h-screen overflow-hidden">
+        <img src="/images/arc.png" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" style={{ objectPosition: "center 60%" }} />
+        <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: "65%", background: "linear-gradient(to top, #F5F4F0 0%, #F5F4F0 18%, rgba(245,244,240,0.85) 35%, rgba(245,244,240,0.5) 55%, rgba(245,244,240,0.15) 75%, transparent 100%)" }} />
+        <div className="absolute inset-x-0 bottom-0 z-30 flex flex-col px-6 md:px-12 pb-12 max-w-3xl">
+          {user && <div className="font-pixel text-[11px] tracking-widest text-black/40 mb-4" style={fade(heroReady, 0)}>WELCOME BACK, {firstName.toUpperCase()}</div>}
+          <h1 className="text-6xl sm:text-7xl md:text-8xl font-light leading-[1.0] tracking-tight mb-8" style={{ ...PLEX, ...fade(heroReady, 0, 24) }}>
+            Crack your<br />dream company<br />interview.
+          </h1>
+          <p className="text-base text-black/45 max-w-md mb-8 leading-relaxed" style={fade(heroReady, 120)}>
+            Practise DSA, aptitude, system design and reasoning with timed sessions, smart hints and AI-generated challenges.
           </p>
-
-          <div style={s.catRow} className="fadeUp-d4 cat-row">
-            {CATEGORIES.map((c) => (
-              <span key={c.label} style={{ ...s.catPill, color: c.color, background: c.bg, borderColor: c.border }}>
-                {c.label}
-              </span>
-            ))}
-          </div>
-
-          {renderHeroCTA()}
-
-          <div style={s.statsStrip} className="fadeUp-d6 stats-strip">
-            {[
-              { val: "200+", label: "Questions" },
-              { val: "6", label: "Categories" },
-              { val: "60s", label: "Per Question" },
-              { val: "∞", label: "AI Questions" },
-            ].map((x) => (
-              <div key={x.label} style={s.statItem} className="stat-item">
-                <span style={s.statVal}>{x.val}</span>
-                <span style={s.statLabel}>{x.label}</span>
+          <div className="flex flex-wrap gap-3 mb-10" style={fade(heroReady, 200)}>{ctas}</div>
+          <div className="flex gap-8 sm:gap-12">
+            {[["60s", "Per question"], ["2", "Hints"], ["6", "Categories"]].map(([v, l], i) => (
+              <div key={l} style={fade(heroReady, 280 + i * 80)}>
+                <div className="text-3xl font-light tracking-tight" style={PLEX}>{v}</div>
+                <div className="text-xs text-black/40 tracking-widest uppercase mt-1">{l}</div>
               </div>
             ))}
           </div>
         </div>
+      </section>
 
-        <div style={{ ...s.heroCard, opacity: visible ? 1 : 0, transform: visible ? "translateY(0) rotate(-1deg)" : "translateY(40px) rotate(-1deg)", transition: "opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s" }} className="float-card hero-card">
-          <div style={s.cardHeader}>
-            <span style={s.cardChip}>DSA</span>
-            <span style={s.cardChip}>Q 12 · 2 attempts left</span>
+      {/* FEATURES */}
+      <section id="platform" className="py-32 px-6 md:px-12 lg:px-20">
+        <div className="max-w-6xl mx-auto">
+          <Head icon="platform" tag="FEATURES" title={"Everything you need\nto get placed."} />
+          <div className="grid grid-cols-12 gap-3">
+            {FEATURES.map((f, i) => (
+              <BentoCard key={f.title} className="col-span-12 md:col-span-4 p-8 min-h-[220px]" delay={(i % 3) * 80}>
+                <span className="font-pixel text-[11px] text-black/20 tracking-widest block mb-10">0{i + 1}</span>
+                <h3 className="text-lg font-light mb-2">{f.title}</h3>
+                <p className="text-sm text-black/45 leading-relaxed">{f.desc}</p>
+              </BentoCard>
+            ))}
           </div>
-          <p style={s.cardQ}>What data structure does BFS use to explore nodes level by level?</p>
-          {[
-            { l: "A", t: "Stack", sel: false },
-            { l: "B", t: "Queue", sel: true },
-            { l: "C", t: "Heap", sel: false },
-            { l: "D", t: "Linked List", sel: false },
-          ].map((o) => (
-            <div key={o.l} style={{ ...s.cardOpt, ...(o.sel ? s.cardOptSel : {}) }}>
-              <span style={{ ...s.cardLetter, background: o.sel ? "#7c6bb0" : "#f0ecff", color: o.sel ? "#fff" : "#7c6bb0" }}>{o.l}</span>
-              <span style={s.cardOptText}>{o.t}</span>
-              {o.sel && <span style={s.cardCheck}>✓</span>}
+        </div>
+      </section>
+
+      {/* TRACKS */}
+      <section id="tracks" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-16">
+            <div>
+              <PixelIcon type="agents" size={40} />
+              <div className="mt-4"><Tag>CATEGORIES</Tag></div>
+              <RevealText className="mt-5 text-4xl md:text-5xl font-light tracking-tight leading-[1.05]">{"Four tracks.\nOne placement plan."}</RevealText>
             </div>
-          ))}
-          <div style={s.cardTimerBar}>
-            <div style={s.cardTimerFill} />
-            <span style={s.cardTimerLabel}>42s remaining</span>
+            <p className="text-sm text-black/45 leading-relaxed max-w-xs">Cover every section of a company screening, from aptitude to system design.</p>
           </div>
+          <StackingAgentCards />
         </div>
       </section>
 
-      <section style={s.featSection} className="feat-section">
-        <div style={s.sectionInner}>
-          <p style={s.sectionEyebrow}>Why PlacePrep AI?</p>
-          <h3 style={s.sectionTitle} className="section-title">Everything you need<br /><span style={s.sectionAccent}>to get placed.</span></h3>
-          <div style={s.featGrid} className="feat-grid">
-            {FEATURES.map((f) => (
-              <div key={f.title} style={s.featCard} className="feat-card">
-                <span style={s.featIcon}>{f.icon}</span>
-                <h4 style={s.featTitle}>{f.title}</h4>
-                <p style={s.featDesc}>{f.desc}</p>
-              </div>
+      {/* WORKFLOW */}
+      <section id="workflow" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+        <div className="max-w-6xl mx-auto">
+          <Head icon="workflow" tag="HOW IT WORKS" title={"From first question\nto placement ready."} />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            {STEPS.map((st, i) => (
+              <BentoCard key={st.n} className="flex flex-col min-h-[260px] p-7" delay={i * 70}>
+                <span className="font-pixel text-[11px] text-black/20 tracking-widest">{st.n}</span>
+                <div className="mt-auto pt-16">
+                  <h3 className="text-2xl font-light mb-3">{st.title}</h3>
+                  <p className="text-sm text-black/45 leading-relaxed">{st.desc}</p>
+                </div>
+              </BentoCard>
             ))}
           </div>
         </div>
       </section>
 
-      <section style={s.ctaSection} className="cta-section">
-        <div style={s.ctaInner}>
-          <div style={s.ctaBlob} />
-          <p style={s.ctaEyebrow}>Ready to begin?</p>
-          <h3 style={s.ctaTitle} className="cta-title">Your placement season<br />starts <span style={s.ctaTitleAccent}>right now.</span></h3>
-          <p style={s.ctaSub}>{user ? "Keep pushing — every question gets you closer." : "No fluff. Just you, the clock, and 200+ placement questions."}</p>
-          {renderBottomCTA()}
+      {/* AI */}
+      <section id="ai" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-16">
+            <div>
+              <PixelIcon type="integrations" size={40} />
+              <div className="mt-4"><Tag>POWERED BY GEMINI</Tag></div>
+              <RevealText className="mt-5 text-4xl md:text-5xl font-light tracking-tight leading-[1.05]">{"Stuck in a loop?\nGenerate something new."}</RevealText>
+            </div>
+            <p className="text-sm text-black/45 leading-relaxed max-w-xs">AI Question Mode creates a fresh placement-style question whenever you want one.</p>
+          </div>
+          <div className="relative rounded-2xl overflow-hidden border border-black/[0.07] min-h-[420px] flex items-center justify-center p-6">
+            <img src="/images/arc.png" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="relative w-full max-w-md rounded-xl border border-white/50 p-6" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)", background: "rgba(255,255,255,0.65)" }}>
+              <div className="flex items-center justify-between mb-4">
+                <Tag>SAMPLE QUESTION</Tag>
+                <span className="font-pixel text-[11px] text-black/30 tracking-widest">DSA</span>
+              </div>
+              <p className="text-sm text-black/70 leading-relaxed mb-4">What data structure does BFS use to explore nodes level by level?</p>
+              {["Stack", "Queue", "Heap", "Linked List"].map((o, i) => (
+                <div key={o} className={`px-4 py-2.5 mb-2 rounded-lg border text-xs ${i === 1 ? "border-emerald-600/30 bg-emerald-50 text-emerald-700" : "border-black/[0.07] bg-white/60 text-black/50"}`}>{o}</div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <footer style={s.footer} className="footer-inner">
-        <div style={s.footerTop}>
-          <div style={s.footerLeft}>
-            <span style={s.footerLogo}>PlacePrep <span style={s.logoAccent}>AI</span></span>
-            <p style={s.footerTagline}>Aptitude · DSA · System Design · Reasoning</p>
+      {/* MARQUEE */}
+      <section id="topics" className="border-t border-black/[0.06] overflow-hidden select-none">
+        {[ROW1, ROW2].map((row, r) => (
+          <div key={r} className={`flex ${r === 0 ? "border-b border-black/[0.06]" : ""}`} style={{ animation: `${r === 0 ? "marqueeLeft 28s" : "marqueeRight 22s"} linear infinite` }}>
+            {[0, 1, 2].map((rep) => (
+              <div key={rep} className="flex shrink-0">
+                {row.map((c) => (
+                  <div key={c} className="flex items-center gap-6 px-10 py-5 border-r border-black/[0.06] shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-black/20 shrink-0" />
+                    <span className="text-sm text-black/45 whitespace-nowrap tracking-wide">{c}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
-          <div style={s.footerLinks} className="footer-links">
-            {user ? (
-              <>
-                <a href="/quiz" style={s.footerLink}>Quiz</a>
-                <span style={s.footerDot} />
-                <a href="/ai-quiz" style={s.footerLink}>AI Questions</a>
-                <span style={s.footerDot} />
-                <a href="/dashboard" style={s.footerLink}>Dashboard</a>
-              </>
-            ) : (
-              <>
-                <a href="/login" style={s.footerLink}>Sign In</a>
-                <span style={s.footerDot} />
-                <a href="/register" style={s.footerLink}>Register</a>
-              </>
-            )}
+        ))}
+      </section>
+
+      {/* CTA */}
+      <section className="relative py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06] overflow-hidden">
+        <img src="/images/footer.png" alt="" aria-hidden="true" className="absolute bottom-0 left-0 w-full object-cover object-bottom pointer-events-none select-none" style={{ opacity: 0.85 }} />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(to top, rgb(245,244,240) 0%, rgba(245,244,240,0.92) 18%, rgba(245,244,240,0.55) 35%, transparent 55%)" }} />
+        <div className="relative z-10 max-w-2xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.05] mb-6">Your placement season<br />starts now.</h2>
+          <p className="text-sm text-black/45 leading-relaxed mb-10">{user ? "Keep pushing. Every question gets you closer." : "No fluff. Just you, the clock, and the placement question bank."}</p>
+          <div className="flex flex-wrap justify-center gap-3">{ctas}</div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <span className="font-pixel text-xs tracking-[0.25em] text-black/50">PLACEPREP AI</span>
+          <div className="flex flex-wrap gap-x-8 gap-y-3">
+            {(user
+              ? [["Quiz", "/quiz"], ["AI Questions", "/ai-quiz"], ["Dashboard", "/dashboard"]]
+              : [["Sign In", "/login"], ["Register", "/register"]]
+            ).map(([l, h]) => (
+              <a key={l} href={h} className="text-xs text-black/35 hover:text-black/70 transition-colors tracking-widest">{l}</a>
+            ))}
           </div>
         </div>
-        <div style={s.footerDivider} />
-        <div style={s.footerBottom} className="footer-bottom">
-          <span style={s.footerCopy}>© {new Date().getFullYear()} PlacePrep AI. All rights reserved.</span>
-          <span style={s.footerCredit}>
-            Designed &amp; Developed by{" "}
-            <span style={s.footerName}>Dhanush Madhyasta</span>
-          </span>
+        <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-black/[0.04] flex flex-col sm:flex-row justify-between gap-2 text-xs text-black/25">
+          <span>© {new Date().getFullYear()} PlacePrep AI. All rights reserved.</span>
+          <span>Designed &amp; developed by Dhanush Madhyasta</span>
         </div>
       </footer>
-    </main>
+    </div>
   );
 }
-
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; }
-  a { text-decoration: none; }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(18px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes float {
-    0%,100% { transform: translateY(0) rotate(-1deg); }
-    50%      { transform: translateY(-10px) rotate(-1deg); }
-  }
-  @keyframes blobPulse {
-    0%,100% { transform: scale(1) translate(0,0); }
-    50%      { transform: scale(1.08) translate(8px,-8px); }
-  }
-
-  .fadeUp-d1 { animation: fadeUp 0.6s ease 0.05s both; }
-  .fadeUp-d2 { animation: fadeUp 0.6s ease 0.15s both; }
-  .fadeUp-d3 { animation: fadeUp 0.6s ease 0.25s both; }
-  .fadeUp-d4 { animation: fadeUp 0.6s ease 0.35s both; }
-  .fadeUp-d5 { animation: fadeUp 0.6s ease 0.45s both; }
-  .fadeUp-d6 { animation: fadeUp 0.6s ease 0.55s both; }
-
-  .float-card { animation: float 4s ease-in-out infinite; }
-
-  .btn-hover { transition: all 0.22s ease !important; }
-  .btn-hover:hover { transform: translateY(-3px) !important; box-shadow: 0 12px 32px rgba(124,107,176,0.28) !important; opacity: 1 !important; }
-
-  .feat-card { transition: transform 0.22s ease, box-shadow 0.22s ease; }
-  .feat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(124,107,176,0.14); }
-
-  @media (max-width: 900px) {
-    .hero-grid     { grid-template-columns: 1fr !important; padding: 48px 20px 56px !important; }
-    .hero-card     { display: none !important; }
-    .hero-title    { font-size: 44px !important; }
-    .feat-grid     { grid-template-columns: repeat(2,1fr) !important; }
-    .cta-title     { font-size: 38px !important; }
-    .stats-strip   { width: 100% !important; }
-    .section-title { font-size: 34px !important; }
-    .header-tagline{ display: none !important; }
-  }
-
-  @media (max-width: 600px) {
-    .hero-grid     { padding: 36px 16px 44px !important; gap: 28px !important; }
-    .hero-title    { font-size: 34px !important; letter-spacing: -0.01em !important; }
-    .hero-sub      { font-size: 14px !important; }
-    .hero-badge    { font-size: 11px !important; padding: 5px 12px !important; }
-    .feat-grid     { grid-template-columns: 1fr !important; gap: 14px !important; }
-    .cta-title     { font-size: 30px !important; }
-    .cta-section   { padding: 60px 16px !important; }
-    .section-title { font-size: 28px !important; }
-    .feat-section  { padding: 56px 16px !important; }
-    .stats-strip   { flex-wrap: wrap !important; width: 100% !important; border-radius: 14px !important; }
-    .stat-item     { flex: 1 1 calc(50% - 1px) !important; padding: 12px 10px !important; }
-    .cta-row       { flex-direction: column !important; align-items: stretch !important; }
-    .btn-primary, .btn-secondary, .btn-ai { width: 100% !important; justify-content: center !important; }
-    .header-link   { padding: 6px 10px !important; font-size: 11px !important; }
-    .header-inner  { flex-wrap: wrap !important; gap: 8px !important; }
-    .header-btns   { flex-wrap: wrap !important; gap: 6px !important; }
-    .logo-text     { font-size: 20px !important; }
-    .footer-inner  { padding: 20px 16px 18px !important; }
-    .footer-bottom { flex-direction: column !important; align-items: flex-start !important; gap: 4px !important; }
-    .footer-links  { flex-wrap: wrap !important; gap: 8px !important; }
-    .cat-row       { gap: 6px !important; }
-    .cta-btns      { flex-direction: column !important; align-items: stretch !important; }
-    .cta-btns a    { width: 100% !important; justify-content: center !important; }
-    .avatar-wrap   { padding: 3px 8px 3px 3px !important; }
-    .avatar-name   { display: none !important; }
-    .logout-btn    { font-size: 11px !important; }
-  }
-`;
-
-const s: Record<string, React.CSSProperties> = {
-  root: {
-    minHeight: "100vh",
-    background: "linear-gradient(160deg,#faf8ff 0%,#f3f0ff 45%,#f0faf4 80%,#fffdf4 100%)",
-    fontFamily: "'DM Sans',sans-serif",
-    color: "#2d2540",
-    overflowX: "hidden",
-  },
-  header: {
-    background: "rgba(255,255,255,0.82)",
-    backdropFilter: "blur(20px)",
-    borderBottom: "1px solid #e8e2f8",
-    padding: "16px 28px",
-    position: "sticky",
-    top: 0,
-    zIndex: 100,
-  },
-  headerInner: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  logo: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#2d2540", lineHeight: 1.1 },
-  logoAccent: { color: "#7c6bb0" },
-  tagline: { fontSize: 11, color: "#9488b8", marginTop: 2, letterSpacing: "0.04em" },
-  headerBtns: { display: "flex", gap: 10, alignItems: "center" },
-  headerLink: {
-    background: "transparent", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
-    borderRadius: 22, padding: "7px 18px", fontWeight: 700, fontSize: 13,
-    fontFamily: "'DM Sans',sans-serif", cursor: "pointer", transition: "all 0.2s",
-  },
-  btnRegisterHeader: {
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
-    border: "none", borderRadius: 22, padding: "7px 18px", fontWeight: 700,
-    fontSize: 13, fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
-  },
-  avatarWrap: {
-    display: "flex", alignItems: "center", gap: 8,
-    background: "#f0ecff", borderRadius: 24, padding: "4px 12px 4px 4px",
-    border: "1.5px solid #ddd6f3",
-  },
-  avatarCircle: {
-    width: 28, height: 28, borderRadius: "50%",
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)",
-    color: "#fff", fontSize: 12, fontWeight: 800,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    fontFamily: "'Playfair Display',serif", flexShrink: 0,
-  },
-  avatarName: { fontSize: 13, fontWeight: 700, color: "#2d2540" },
-  logoutBtn: {
-    background: "transparent", border: "none", color: "#9488b8",
-    fontSize: 12, fontWeight: 600, cursor: "pointer",
-    fontFamily: "'DM Sans',sans-serif", padding: "2px 4px",
-  },
-  hero: {
-    maxWidth: 1100, margin: "0 auto", padding: "72px 28px 80px",
-    display: "grid", gridTemplateColumns: "1fr 420px",
-    gap: 48, alignItems: "center", position: "relative",
-  },
-  blob1: {
-    position: "absolute", width: 420, height: 420,
-    background: "radial-gradient(circle, rgba(195,181,245,0.22) 0%, transparent 70%)",
-    borderRadius: "50%", top: -60, left: -100,
-    animation: "blobPulse 8s ease-in-out infinite", pointerEvents: "none",
-  },
-  blob2: {
-    position: "absolute", width: 320, height: 320,
-    background: "radial-gradient(circle, rgba(168,213,181,0.20) 0%, transparent 70%)",
-    borderRadius: "50%", bottom: 0, right: 60,
-    animation: "blobPulse 10s ease-in-out 2s infinite", pointerEvents: "none",
-  },
-  blob3: {
-    position: "absolute", width: 200, height: 200,
-    background: "radial-gradient(circle, rgba(192,148,91,0.12) 0%, transparent 70%)",
-    borderRadius: "50%", top: "40%", left: "40%", pointerEvents: "none",
-  },
-  heroContent: { position: "relative", zIndex: 1 },
-  heroBadge: {
-    display: "inline-flex", alignItems: "center",
-    background: "#f0ecff", color: "#7c6bb0", border: "1px solid #ddd6f3",
-    borderRadius: 99, padding: "6px 16px", fontSize: 12, fontWeight: 700,
-    letterSpacing: "0.03em", marginBottom: 22,
-  },
-  heroTitle: {
-    fontFamily: "'Playfair Display',serif", fontSize: 58, fontWeight: 900,
-    lineHeight: 1.13, color: "#2d2540", marginBottom: 20, letterSpacing: "-0.02em",
-  },
-  heroAccent: { color: "#7c6bb0", fontStyle: "italic" },
-  heroSub: { fontSize: 16, lineHeight: 1.75, color: "#6b6080", maxWidth: 480, marginBottom: 26, fontWeight: 400 },
-  catRow: { display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 36 },
-  catPill: { padding: "5px 14px", borderRadius: 99, fontSize: 12, fontWeight: 700, border: "1.5px solid", letterSpacing: "0.03em" },
-  ctaRow: { display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 44 },
-  btnPrimary: {
-    display: "inline-flex", alignItems: "center", gap: 6,
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
-    border: "none", borderRadius: 14, padding: "14px 28px", fontSize: 15,
-    fontWeight: 700, fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
-    boxShadow: "0 4px 20px rgba(124,107,176,0.28)", letterSpacing: "0.02em",
-  },
-  btnSecondary: {
-    display: "inline-flex", alignItems: "center", gap: 6,
-    background: "rgba(255,255,255,0.85)", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
-    borderRadius: 14, padding: "14px 28px", fontSize: 15, fontWeight: 700,
-    fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
-    backdropFilter: "blur(8px)", letterSpacing: "0.02em",
-  },
-  btnAI: {
-    display: "inline-flex", alignItems: "center", gap: 6,
-    background: "linear-gradient(135deg,#c3b5f5,#a8d5b5)", color: "#2d2540",
-    border: "none", borderRadius: 14, padding: "14px 28px", fontSize: 15,
-    fontWeight: 700, fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
-    letterSpacing: "0.02em", boxShadow: "0 4px 16px rgba(124,107,176,0.20)",
-  },
-  btnGhost: {
-    display: "inline-flex", alignItems: "center", gap: 6,
-    background: "rgba(255,255,255,0.15)", color: "#fff",
-    border: "1.5px solid rgba(255,255,255,0.35)", borderRadius: 14,
-    padding: "14px 28px", fontSize: 15, fontWeight: 700,
-    fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
-    backdropFilter: "blur(8px)", letterSpacing: "0.02em",
-  },
-  statsStrip: {
-    display: "flex", gap: 0, background: "rgba(255,255,255,0.75)",
-    border: "1px solid #ede9fa", borderRadius: 16,
-    backdropFilter: "blur(12px)", overflow: "hidden", width: "fit-content",
-  },
-  statItem: { display: "flex", flexDirection: "column", alignItems: "center", padding: "14px 24px", borderRight: "1px solid #ede9fa" },
-  statVal: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#7c6bb0", lineHeight: 1 },
-  statLabel: { fontSize: 11, color: "#9488b8", fontWeight: 600, marginTop: 4, textTransform: "uppercase", letterSpacing: "0.06em" },
-  heroCard: {
-    position: "relative", zIndex: 1, background: "#fff", borderRadius: 26,
-    padding: "28px 28px 22px",
-    boxShadow: "0 24px 72px rgba(124,107,176,0.18), 0 4px 16px rgba(0,0,0,0.06)",
-    border: "1px solid #ede9fa",
-  },
-  cardHeader: { display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" },
-  cardChip: { background: "#f0ecff", color: "#7c6bb0", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, border: "1px solid #ddd6f3" },
-  cardQ: { fontFamily: "'Playfair Display',serif", fontSize: 17, fontWeight: 700, lineHeight: 1.55, color: "#2d2540", marginBottom: 18 },
-  cardOpt: { display: "flex", alignItems: "center", gap: 10, padding: "10px 13px", background: "#faf8ff", border: "1.5px solid #ddd6f3", borderRadius: 11, marginBottom: 7, cursor: "default" },
-  cardOptSel: { borderColor: "#7c6bb0", background: "#f0ecff", boxShadow: "0 0 0 3px rgba(124,107,176,0.12)" },
-  cardLetter: { minWidth: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, flexShrink: 0 },
-  cardOptText: { flex: 1, fontSize: 13, fontWeight: 500, color: "#2d2540" },
-  cardCheck: { width: 20, height: 20, borderRadius: "50%", background: "#7c6bb0", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, flexShrink: 0 },
-  cardTimerBar: { marginTop: 14, position: "relative", height: 28, background: "#f5f3ff", borderRadius: 8, overflow: "hidden", display: "flex", alignItems: "center" },
-  cardTimerFill: { position: "absolute", left: 0, top: 0, height: "100%", width: "70%", background: "#5b8a52", opacity: 0.18, borderRadius: 8 },
-  cardTimerLabel: { position: "relative", zIndex: 1, fontSize: 12, fontWeight: 700, color: "#5b8a52", paddingLeft: 10 },
-  featSection: { background: "rgba(255,255,255,0.55)", borderTop: "1px solid #ede9fa", borderBottom: "1px solid #ede9fa", backdropFilter: "blur(12px)", padding: "80px 28px" },
-  sectionInner: { maxWidth: 1100, margin: "0 auto" },
-  sectionEyebrow: { fontSize: 12, fontWeight: 700, color: "#7c6bb0", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10, textAlign: "center" },
-  sectionTitle: { fontFamily: "'Playfair Display',serif", fontSize: 42, fontWeight: 800, color: "#2d2540", textAlign: "center", marginBottom: 52, lineHeight: 1.25, letterSpacing: "-0.01em" },
-  sectionAccent: { color: "#7c6bb0", fontStyle: "italic" },
-  featGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 },
-  featCard: { background: "#fff", borderRadius: 20, padding: "28px 26px", border: "1px solid #ede9fa", boxShadow: "0 2px 16px rgba(124,107,176,0.07)", cursor: "default" },
-  featIcon: { fontSize: 32, display: "block", marginBottom: 14 },
-  featTitle: { fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#2d2540", marginBottom: 8 },
-  featDesc: { fontSize: 14, color: "#6b6080", lineHeight: 1.7, fontWeight: 400 },
-  ctaSection: { background: "linear-gradient(135deg,#6b50b0 0%,#5b8a52 100%)", padding: "88px 28px", position: "relative", overflow: "hidden", textAlign: "center" },
-  ctaBlob: { position: "absolute", width: 500, height: 500, background: "rgba(255,255,255,0.07)", borderRadius: "50%", top: -150, right: -100, pointerEvents: "none" },
-  ctaInner: { maxWidth: 640, margin: "0 auto", position: "relative", zIndex: 1 },
-  ctaEyebrow: { fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.65)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12 },
-  ctaTitle: { fontFamily: "'Playfair Display',serif", fontSize: 48, fontWeight: 900, color: "#fff", lineHeight: 1.18, marginBottom: 16, letterSpacing: "-0.02em" },
-  ctaTitleAccent: { fontStyle: "italic", color: "#c3f5d5" },
-  ctaSub: { fontSize: 16, color: "rgba(255,255,255,0.75)", lineHeight: 1.7, marginBottom: 38, fontWeight: 400 },
-  ctaBtns: { display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" },
-  footer: { borderTop: "1px solid #e8e2f8", padding: "28px 48px 24px", background: "rgba(255,255,255,0.82)", backdropFilter: "blur(12px)" },
-  footerTop: { maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginBottom: 18 },
-  footerLeft: { display: "flex", flexDirection: "column", gap: 4 },
-  footerLogo: { fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 800, color: "#2d2540" },
-  footerTagline: { fontSize: 11, color: "#9488b8", fontWeight: 500, letterSpacing: "0.04em" },
-  footerLinks: { display: "flex", alignItems: "center", gap: 10 },
-  footerLink: { fontSize: 13, color: "#7c6bb0", fontWeight: 600, textDecoration: "none" },
-  footerDot: { width: 4, height: 4, borderRadius: "50%", background: "#c3b5f5", display: "inline-block" },
-  footerDivider: { maxWidth: 1100, margin: "0 auto 16px", height: 1, background: "linear-gradient(90deg, transparent, #e8e2f8 30%, #e8e2f8 70%, transparent)" },
-  footerBottom: { maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 },
-  footerCopy: { fontSize: 12, color: "#b0a8c8", fontWeight: 500 },
-  footerCredit: { fontSize: 12, color: "#9488b8", fontWeight: 500 },
-  footerName: { fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: 13, color: "#7c6bb0", fontStyle: "italic" },
-};

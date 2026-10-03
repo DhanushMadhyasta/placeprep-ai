@@ -53,13 +53,13 @@ export default function AuthCallback() {
     <main style={{
       minHeight: "100vh",
       display: "flex", alignItems: "center", justifyContent: "center",
-      background: "linear-gradient(145deg,#faf8ff,#f3f0ff)",
-      fontFamily: "'DM Sans',sans-serif",
+      background: "#F5F4F0",
+      fontFamily: "'IBM Plex Sans',sans-serif",
     }}>
-      <div style={{ textAlign: "center", color: "#7c6bb0" }}>
+      <div style={{ textAlign: "center", color: "#111" }}>
         <div style={{
           width: 44, height: 44, borderRadius: "50%",
-          border: "4px solid #ede9fa", borderTop: "4px solid #7c6bb0",
+          border: "4px solid #ece9e2", borderTop: "4px solid #111",
           animation: "spin 0.9s linear infinite", margin: "0 auto 16px",
         }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

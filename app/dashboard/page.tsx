@@ -1,17 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MobileNav, APP_LINKS } from "@/components/mobile-nav";
+import { Backdrop, PageHead, CountUp, Glyph } from "@/components/fx";
+
+const PLEX = { fontFamily: '"IBM Plex Sans", sans-serif' };
+const TIPS = [
+  ["Aptitude", "Practise time-and-work, profit-loss and percentages daily."],
+  ["DSA", "Know trees, graphs and DP patterns. They appear in most technical rounds."],
+  ["DBMS", "Master SQL joins, normalization and ACID properties."],
+  ["OS", "Understand process scheduling, deadlocks and memory management."],
+  ["System Design", "Study low-level design patterns and scalability basics."],
+];
 
 export default function DashboardPage() {
   const [totalAttempts, setTotalAttempts] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
   const [totalScore, setTotalScore] = useState(0);
   const [bestScore, setBestScore] = useState(0);
 
@@ -32,245 +35,60 @@ export default function DashboardPage() {
   };
 
   const stats = [
-    { label: "Total Attempts", val: totalAttempts, icon: "🎯", color: "#7c6bb0", bg: "#f0ecff", border: "#ddd6f3" },
-    { label: "Best Score", val: `${bestScore}/25`, icon: "🏆", color: "#5b8a52", bg: "#e8f5e9", border: "#a5d6a7" },
-    { label: "Avg Score", val: `${avgScore}/25`, icon: "📈", color: "#c0945b", bg: "#fff3e0", border: "#ffcc80" },
-    { label: "Avg Accuracy", val: `${avgPct}%`, icon: "✅", color: "#5b8ab0", bg: "#e3f2fd", border: "#90caf9" },
+    { l: "Total attempts", g: "layers", n: totalAttempts, suf: "" },
+    { l: "Best score", g: "award", n: bestScore, suf: "/25" },
+    { l: "Avg score", g: "trend", n: avgScore, suf: "/25" },
+    { l: "Avg accuracy", g: "target", n: avgPct, suf: "%" },
   ];
-
-  const level =
-    avgPct >= 80 ? { label: "🔥 Placement Ready", color: "#5b8a52", bg: "#e8f5e9", border: "#a5d6a7" }
-    : avgPct >= 60 ? { label: "👍 On the Right Track", color: "#7c6bb0", bg: "#f0ecff", border: "#ddd6f3" }
-    : { label: "📚 Keep Practising", color: "#c0945b", bg: "#fff3e0", border: "#ffcc80" };
+  const level = avgPct >= 80 ? "Placement Ready" : avgPct >= 60 ? "On the Right Track" : "Keep Practising";
+  const card = "glow-card rounded-2xl border border-black/[0.07] bg-white";
 
   return (
-    <main style={s.root}>
-      <style>{css}</style>
+    <main className="grain relative min-h-screen bg-[#F5F4F0] text-[#111] px-6 pt-28 pb-20 overflow-hidden">
+      <Backdrop />
+      <MobileNav links={APP_LINKS} cta={null} />
+      <div className="relative z-10 max-w-4xl mx-auto">
+        <PageHead icon="platform" tag="DASHBOARD" title="Your progress" sub="Track how you are improving over time." />
 
-      {/* Header */}
-      <header style={s.header}>
-        <div style={s.headerInner}>
-          <div>
-            <h1 style={s.logo}>PlacePrep <span style={s.logoAccent}>AI</span></h1>
-            <p style={s.tagline} className="header-tagline">Aptitude · Reasoning · Technical · System Design</p>
-          </div>
-          <div style={s.headerBtns} className="header-btns">
-            <a href="/" style={s.headerLink} className="header-link">Home</a>
-            <a href="/quiz" style={s.headerLink} className="header-link">Quiz</a>
-            <a href="/ai-quiz" style={s.headerLink} className="header-link">🤖 AI</a>
-            <a href="/dashboard" style={s.btnRegisterHeader} className="header-link">Dashboard</a>
-          </div>
-        </div>
-      </header>
-
-      <div style={s.container} className="fadeUp">
-
-        {/* Title section */}
-        <div style={s.titleSection}>
-          <h2 style={s.pageTitle}>Your Progress</h2>
-          <p style={s.pageSub}>Track how you're improving over time</p>
-        </div>
-
-        {/* Stats grid — big visual cards */}
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4,1fr)", gap: 14, marginBottom: 24 }}>
-          {stats.map((st) => (
-            <div key={st.label} style={{ ...s.statCard, background: st.bg, borderColor: st.border }}>
-              {/* Big circular icon */}
-              <div style={{
-                width: 56, height: 56, borderRadius: "50%",
-                background: st.color, margin: "0 auto 12px",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 24, boxShadow: `0 4px 16px ${st.color}44`,
-              }}>
-                {st.icon}
-              </div>
-              <p style={s.statLabel}>{st.label}</p>
-              <p style={{ ...s.statVal, color: st.color }}>{st.val}</p>
-              {/* Mini progress bar for accuracy */}
-              {st.label === "Avg Accuracy" && totalAttempts > 0 && (
-                <div style={{ marginTop: 10, height: 4, background: "#e8e2f8", borderRadius: 99, overflow: "hidden" }}>
-                  <div style={{ width: `${avgPct}%`, height: "100%", background: st.color, borderRadius: 99, transition: "width 0.8s ease" }} />
-                </div>
-              )}
-              {/* Mini bar for best score */}
-              {st.label === "Best Score" && totalAttempts > 0 && (
-                <div style={{ marginTop: 10, height: 4, background: "#e8e2f8", borderRadius: 99, overflow: "hidden" }}>
-                  <div style={{ width: `${Math.round((bestScore/25)*100)}%`, height: "100%", background: st.color, borderRadius: 99, transition: "width 0.8s ease" }} />
-                </div>
-              )}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+          {stats.map((st, i) => (
+            <div key={st.l} className={`${card} rise p-6`} style={{ animationDelay: `${300 + i * 80}ms` }}>
+              <div className="flex items-center justify-between mb-8 text-black/30"><span className="font-pixel text-[11px] tracking-widest uppercase text-black/35">{st.l}</span><Glyph name={st.g} /></div>
+              <div className="text-3xl font-light" style={PLEX}><CountUp value={st.n} suffix={st.suf} /></div>
             </div>
           ))}
         </div>
 
-        {/* Level badge */}
         {totalAttempts > 0 && (
-          <div style={s.levelSection}>
-            <p style={s.levelTitle}>Current Level</p>
-            <div style={{ ...s.levelBadge, color: level.color, background: level.bg, borderColor: level.border }}>
-              {level.label}
+          <div className={`${card} rise p-6 md:p-8 mb-3`} style={{ animationDelay: "650ms" }}>
+            <div className="flex items-center justify-between mb-5">
+              <span className="font-pixel text-[11px] tracking-widest text-black/35 uppercase">Current level</span>
+              <span className="inline-flex px-3 py-1 rounded-full text-[11px] tracking-widest text-black/50 bg-black/[0.04]">{level.toUpperCase()}</span>
             </div>
+            <div className="h-px bg-black/[0.08] relative mb-3"><div className="absolute left-0 -top-px h-[3px] bg-[#111] transition-all duration-700" style={{ width: `${avgPct}%` }} /></div>
+            <div className="flex justify-between text-[11px] text-black/35 tracking-widest"><span>0%</span><span>{avgPct}%</span><span>100%</span></div>
           </div>
         )}
 
-        {/* Progress visualization */}
-        {totalAttempts > 0 && (
-          <div style={s.progressCard}>
-            <h3 style={s.cardTitle}>Average Accuracy</h3>
-            <div style={s.bigProgressTrack}>
-              <div style={{ ...s.bigProgressFill, width: `${avgPct}%` }} />
-            </div>
-            <div style={s.progressLabels}>
-              <span style={s.pLabel}>0%</span>
-              <span style={{ ...s.pLabel, color: "#7c6bb0", fontWeight: 700 }}>{avgPct}%</span>
-              <span style={s.pLabel}>100%</span>
-            </div>
-
-            {/* Milestones */}
-            <div style={s.milestones}>
-              {[
-                { pct: 60, label: "Good", color: "#c0945b" },
-                { pct: 80, label: "Ready", color: "#5b8a52" },
-              ].map((m) => (
-                <div key={m.label} style={s.milestone}>
-                  <div style={{ ...s.mDot, background: avgPct >= m.pct ? m.color : "#ddd6f3" }} />
-                  <span style={{ ...s.mLabel, color: avgPct >= m.pct ? m.color : "#9488b8" }}>
-                    {m.pct}% — {m.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Tips */}
-        <div style={s.tipsCard}>
-          <h3 style={s.cardTitle}>💡 Placement Tips</h3>
-          <div style={s.tipsList}>
-            {[
-              { icon: "🧮", tip: "Aptitude: Practice time-and-work, profit-loss, and percentages daily." },
-              { icon: "🌳", tip: "DSA: Know trees, graphs, and DP patterns — they appear in 80% of tech rounds." },
-              { icon: "🗄️", tip: "DBMS: Master SQL JOINs, normalization, and transaction properties (ACID)." },
-              { icon: "🧵", tip: "OS: Understand process scheduling, deadlocks, and memory management." },
-              { icon: "🏗️", tip: "System Design: Study LLD patterns and scalability concepts for senior roles." },
-            ].map((t) => (
-              <div key={t.tip} style={s.tipItem}>
-                <span style={s.tipIcon}>{t.icon}</span>
-                <span style={s.tipText}>{t.tip}</span>
+        <div className={`${card} rise p-6 md:p-8 mb-8`} style={{ animationDelay: "750ms" }}>
+          <div className="font-pixel text-[11px] tracking-widest text-black/35 uppercase mb-5">Placement tips</div>
+          <div className="divide-y divide-black/[0.06]">
+            {TIPS.map(([t, d]) => (
+              <div key={t} className="flex gap-6 py-3.5 text-sm">
+                <span className="font-pixel text-[11px] tracking-widest text-black/40 w-28 shrink-0 pt-0.5 uppercase">{t}</span>
+                <span className="text-black/55 leading-relaxed">{d}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Actions */}
-        <div style={s.actions}>
-          <a href="/quiz" style={s.startBtn}>🚀 Start New Quiz</a>
+        <div className="flex flex-wrap gap-3">
+          <a href="/quiz" className="px-8 py-3 bg-[#111] text-sm rounded-xl hover:bg-[#333] hover:-translate-y-0.5 transition-all duration-300 tracking-widest" style={{ color: "#fff" }}>START NEW QUIZ</a>
           {totalAttempts > 0 && (
-            <button style={s.clearBtn} onClick={clearData}>🗑 Reset Progress</button>
+            <button onClick={clearData} className="px-8 py-3 border border-black/10 text-sm rounded-xl hover:border-black/25 transition-colors tracking-widest" style={{ color: "rgba(0,0,0,0.6)" }}>RESET PROGRESS</button>
           )}
         </div>
-
       </div>
     </main>
   );
 }
-
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .fadeUp { animation: fadeUp 0.4s ease both; }
-  a, button { transition: all 0.2s ease; }
-  a:hover, button:hover { opacity: 0.88; transform: translateY(-1px); }
-`;
-
-const s: Record<string, React.CSSProperties> = {
-  root: {
-    minHeight: "100vh", overflowX: "hidden",
-    background: "linear-gradient(145deg,#faf8ff 0%,#f3f0ff 40%,#f0faf4 80%,#fffdf4 100%)",
-    fontFamily: "'DM Sans',sans-serif", color: "#2d2540",
-  },
-  header: {
-    background: "rgba(255,255,255,0.82)", backdropFilter: "blur(20px)",
-    borderBottom: "1px solid #e8e2f8", padding: "16px 28px",
-    position: "sticky", top: 0, zIndex: 100,
-  },
-  headerInner: {
-    maxWidth: 1100, margin: "0 auto", display: "flex",
-    alignItems: "center", justifyContent: "space-between", gap: 12,
-  },
-  logo: { fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 800, color: "#2d2540", lineHeight: 1.1 },
-  logoAccent: { color: "#7c6bb0" },
-  tagline: { fontSize: 11, color: "#9488b8", marginTop: 2, letterSpacing: "0.04em" },
-  headerBtns: { display: "flex", gap: 10, alignItems: "center" },
-  headerLink: {
-    background: "transparent", color: "#7c6bb0", border: "1.5px solid #c3b5f5",
-    borderRadius: 22, padding: "7px 18px", fontWeight: 700, fontSize: 13,
-    fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
-    textDecoration: "none", display: "inline-block",
-  },
-  btnRegisterHeader: {
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
-    border: "none", borderRadius: 22, padding: "7px 18px", fontWeight: 700,
-    fontSize: 13, fontFamily: "'DM Sans',sans-serif", cursor: "pointer",
-    textDecoration: "none", display: "inline-block",
-  },
-  primaryBtn: {
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
-    border: "none", borderRadius: 22, padding: "8px 14px", fontSize: 13, fontWeight: 700,
-    textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4,
-    whiteSpace: "nowrap",
-  },
-
-  container: { maxWidth: 860, margin: "0 auto", padding: "32px 18px 60px" },
-  titleSection: { marginBottom: 28, textAlign: "center" },
-  pageTitle: { fontFamily: "'Playfair Display',serif", fontSize: 30, fontWeight: 800, color: "#2d2540" },
-  pageSub: { color: "#9488b8", fontSize: 14, marginTop: 6 },
-
-  statsGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 14, marginBottom: 24 },
-  statCard: {
-    borderRadius: 20, padding: "22px 20px", textAlign: "center",
-    border: "1.5px solid", boxShadow: "0 2px 16px rgba(124,107,176,0.07)",
-  },
-  statIcon: { fontSize: 28, display: "block", marginBottom: 8 },
-  statLabel: { fontSize: 11, color: "#9488b8", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 },
-  statVal: { fontSize: 26, fontWeight: 800, fontFamily: "'Playfair Display',serif" },
-
-  levelSection: { textAlign: "center", marginBottom: 24 },
-  levelTitle: { fontSize: 12, color: "#9488b8", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 },
-  levelBadge: { display: "inline-block", padding: "9px 24px", borderRadius: 99, border: "1.5px solid", fontWeight: 700, fontSize: 16 },
-
-  progressCard: { background: "#fff", borderRadius: 22, padding: "28px 26px", border: "1px solid #ede9fa", boxShadow: "0 4px 20px rgba(124,107,176,0.07)", marginBottom: 20 },
-  cardTitle: { fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 700, color: "#2d2540", marginBottom: 18 },
-  bigProgressTrack: { height: 12, background: "#ede9fa", borderRadius: 99, overflow: "hidden", marginBottom: 8 },
-  bigProgressFill: { height: "100%", background: "linear-gradient(90deg,#a8d5b5,#7c6bb0)", borderRadius: 99, transition: "width 0.8s ease" },
-  progressLabels: { display: "flex", justifyContent: "space-between", marginBottom: 16 },
-  pLabel: { fontSize: 12, color: "#9488b8", fontWeight: 500 },
-  milestones: { display: "flex", gap: 20, flexWrap: "wrap" },
-  milestone: { display: "flex", alignItems: "center", gap: 8 },
-  mDot: { width: 10, height: 10, borderRadius: "50%", transition: "background 0.3s" },
-  mLabel: { fontSize: 13, fontWeight: 600, transition: "color 0.3s" },
-
-  tipsCard: { background: "#fff", borderRadius: 22, padding: "28px 26px", border: "1px solid #ede9fa", boxShadow: "0 4px 20px rgba(124,107,176,0.07)", marginBottom: 28 },
-  tipsList: { display: "flex", flexDirection: "column", gap: 12, marginTop: 4 },
-  tipItem: { display: "flex", gap: 12, alignItems: "flex-start" },
-  tipIcon: { fontSize: 18, flexShrink: 0, marginTop: 1 },
-  tipText: { fontSize: 14, color: "#4a4060", lineHeight: 1.55, fontWeight: 500 },
-
-  actions: { display: "flex", gap: 12, flexWrap: "wrap" },
-  startBtn: {
-    flex: 1, minWidth: 160, textAlign: "center", padding: "15px",
-    background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff",
-    border: "none", borderRadius: 13, fontSize: 15, fontWeight: 700,
-    textDecoration: "none", display: "inline-block",
-    boxShadow: "0 4px 20px rgba(124,107,176,0.22)",
-  },
-  clearBtn: {
-    flex: 1, minWidth: 160, padding: "15px", background: "#fff",
-    color: "#c05b5b", border: "1.5px solid #f5a5a5", borderRadius: 13,
-    fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans',sans-serif",
-  },
-};

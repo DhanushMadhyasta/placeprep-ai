@@ -72,7 +72,7 @@ export default function RegisterPage() {
         <div style={s.blob1} />
         <div style={s.blob2} />
         <div style={s.successCard} className="fadeUp">
-          <div style={s.successIcon}>📧</div>
+          <div style={s.successIcon}></div>
           <h2 style={s.successTitle}>Check Your Email!</h2>
           <p style={s.successSub}>
             We sent a verification link to <strong>{form.email}</strong>.
@@ -146,7 +146,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {error && <div style={s.errorBanner}>⚠️ {error}</div>}
+        {error && <div style={s.errorBanner}>{error}</div>}
 
         <button style={{ ...s.primaryBtn, opacity: loading ? 0.7 : 1 }} onClick={handleSubmit} disabled={loading}>
           {loading ? "Creating Account…" : "Create Account →"}
@@ -162,15 +162,15 @@ export default function RegisterPage() {
 }
 
 const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { overflow-x: hidden; width: 100%; }
-  body { font-family: 'DM Sans', sans-serif; }
+  body { font-family: 'IBM Plex Sans',sans-serif; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
   .fadeUp { animation: fadeUp 0.5s ease both; }
-  input:focus { outline: none; border-color: #7c6bb0 !important; box-shadow: 0 0 0 3px rgba(124,107,176,0.12); }
-  input::placeholder { color: #b0a8c8; }
-  button { transition: all 0.2s ease; font-family: 'DM Sans', sans-serif; }
+  input:focus { outline: none; border-color: #111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,0.12); }
+  input::placeholder { color: #aaa; }
+  button { transition: all 0.2s ease; font-family: 'IBM Plex Sans',sans-serif; }
   button:hover:not(:disabled) { transform: translateY(-2px); opacity: 0.92; }
   a { transition: opacity 0.2s; }
   a:hover { opacity: 0.75; }
@@ -184,41 +184,41 @@ const css = `
 const s: Record<string, React.CSSProperties> = {
   root: {
     minHeight: "100vh",
-    background: "linear-gradient(145deg,#faf8ff 0%,#f3f0ff 50%,#f0faf4 100%)",
+    background: "#F5F4F0",
     display: "flex", alignItems: "center", justifyContent: "center",
-    padding: "24px 16px", fontFamily: "'DM Sans',sans-serif",
+    padding: "24px 16px", fontFamily: "'IBM Plex Sans',sans-serif",
     position: "relative", overflowX: "hidden",
   },
-  blob1: { position: "fixed", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle,rgba(155,141,224,0.18),transparent 70%)", top: -100, right: -100, pointerEvents: "none" },
-  blob2: { position: "fixed", width: 350, height: 350, borderRadius: "50%", background: "radial-gradient(circle,rgba(107,176,154,0.15),transparent 70%)", bottom: -80, left: -80, pointerEvents: "none" },
+  blob1: { position: "fixed", width: 400, height: 400, borderRadius: "50%", background: "transparent", top: -100, right: -100, pointerEvents: "none" },
+  blob2: { position: "fixed", width: 350, height: 350, borderRadius: "50%", background: "transparent", bottom: -80, left: -80, pointerEvents: "none" },
   card: {
-    background: "rgba(255,255,255,0.92)", backdropFilter: "blur(24px)",
+    background: "#fff", backdropFilter: "blur(24px)",
     borderRadius: 28, padding: "40px 36px",
-    boxShadow: "0 20px 60px rgba(124,107,176,0.14), 0 4px 16px rgba(0,0,0,0.06)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.06)",
     border: "1px solid rgba(221,214,243,0.6)", width: "100%", maxWidth: 480, position: "relative", zIndex: 1,
   },
   logoRow: { marginBottom: 24, textAlign: "center" as const },
-  logo: { fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 800, color: "#2d2540" },
-  logoAI: { color: "#7c6bb0" },
-  title: { fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 800, color: "#2d2540", textAlign: "center" as const, marginBottom: 6 },
-  sub: { fontSize: 14, color: "#9488b8", textAlign: "center" as const, marginBottom: 28 },
+  logo: { fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 22, fontWeight: 500, color: "#111" },
+  logoAI: { color: "#111" },
+  title: { fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 28, fontWeight: 500, color: "#111", textAlign: "center" as const, marginBottom: 6 },
+  sub: { fontSize: 14, color: "#777", textAlign: "center" as const, marginBottom: 28 },
   fields: { display: "flex", flexDirection: "column" as const, gap: 16, marginBottom: 20 },
   fieldGroup: { display: "flex", flexDirection: "column" as const, gap: 6 },
-  label: { fontSize: 12, fontWeight: 700, color: "#6b5fa0", textTransform: "uppercase" as const, letterSpacing: "0.06em" },
-  input: { padding: "12px 14px", borderRadius: 12, border: "1.5px solid #ddd6f3", fontSize: 14, fontFamily: "'DM Sans',sans-serif", color: "#2d2540", background: "#faf8ff", transition: "all 0.2s", width: "100%" },
-  fieldHint: { fontSize: 11, color: "#9488b8", marginTop: 2 },
+  label: { fontSize: 12, fontWeight: 700, color: "#555", textTransform: "uppercase" as const, letterSpacing: "0.06em" },
+  input: { padding: "12px 14px", borderRadius: 12, border: "1.5px solid #e5e3dd", fontSize: 14, fontFamily: "'IBM Plex Sans',sans-serif", color: "#111", background: "#fafaf8", transition: "all 0.2s", width: "100%" },
+  fieldHint: { fontSize: 11, color: "#777", marginTop: 2 },
   twoCol: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 },
   errorBanner: { background: "#fce8e8", border: "1.5px solid #f5a5a5", borderRadius: 11, padding: "11px 14px", fontSize: 13, fontWeight: 600, color: "#b71c1c", marginBottom: 16 },
-  primaryBtn: { width: "100%", padding: "15px", background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff", border: "none", borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(124,107,176,0.28)", letterSpacing: "0.02em", marginBottom: 16 },
+  primaryBtn: { width: "100%", padding: "15px", background: "#111", color: "#fff", border: "none", borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.28)", letterSpacing: "0.02em", marginBottom: 16 },
   divider: { display: "flex", alignItems: "center", gap: 10, margin: "20px 0 4px" },
-  dividerLine: { flex: 1, height: 1, background: "#ede9fa" },
-  dividerText: { fontSize: 12, color: "#b0a8c8", fontWeight: 600, whiteSpace: "nowrap" as const },
-  switchText: { fontSize: 13, color: "#9488b8", textAlign: "center" as const },
-  switchLink: { color: "#7c6bb0", fontWeight: 700, textDecoration: "none" },
+  dividerLine: { flex: 1, height: 1, background: "#ece9e2" },
+  dividerText: { fontSize: 12, color: "#aaa", fontWeight: 600, whiteSpace: "nowrap" as const },
+  switchText: { fontSize: 13, color: "#777", textAlign: "center" as const },
+  switchLink: { color: "#111", fontWeight: 700, textDecoration: "none" },
   successCard: {
     background: "rgba(255,255,255,0.95)", backdropFilter: "blur(24px)",
     borderRadius: 28, padding: "48px 40px",
-    boxShadow: "0 20px 60px rgba(124,107,176,0.14)",
+    boxShadow: "0 20px 60px rgba(0,0,0,0.14)",
     border: "1px solid rgba(221,214,243,0.6)",
     width: "100%", maxWidth: 460,
     textAlign: "center" as const, display: "flex",
@@ -226,12 +226,12 @@ const s: Record<string, React.CSSProperties> = {
     position: "relative" as const, zIndex: 1,
   },
   successIcon: { fontSize: 60 },
-  successTitle: { fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 800, color: "#2d2540" },
-  successSub: { fontSize: 15, color: "#2d2540", lineHeight: 1.6 },
+  successTitle: { fontFamily: "'IBM Plex Sans',sans-serif", fontSize: 28, fontWeight: 500, color: "#111" },
+  successSub: { fontSize: 15, color: "#111", lineHeight: 1.6 },
   successDesc: { fontSize: 14, color: "#6b6080", lineHeight: 1.7 },
   successSteps: { display: "flex", flexDirection: "column" as const, gap: 10, width: "100%", marginTop: 4 },
-  successStep: { display: "flex", alignItems: "center", gap: 12, background: "#faf8ff", borderRadius: 10, padding: "10px 14px", border: "1px solid #ede9fa", fontSize: 14, color: "#2d2540", fontWeight: 500 },
-  stepNum: { width: 24, height: 24, borderRadius: "50%", background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  goLoginBtn: { width: "100%", padding: "14px", background: "linear-gradient(135deg,#9b8de0,#6bb09a)", color: "#fff", border: "none", borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(124,107,176,0.28)", marginTop: 4 },
-  spamNote: { fontSize: 12, color: "#b0a8c8", fontStyle: "italic" as const },
+  successStep: { display: "flex", alignItems: "center", gap: 12, background: "#fafaf8", borderRadius: 10, padding: "10px 14px", border: "1px solid #ece9e2", fontSize: 14, color: "#111", fontWeight: 500 },
+  stepNum: { width: 24, height: 24, borderRadius: "50%", background: "#111", color: "#fff", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  goLoginBtn: { width: "100%", padding: "14px", background: "#111", color: "#fff", border: "none", borderRadius: 14, fontSize: 15, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.28)", marginTop: 4 },
+  spamNote: { fontSize: 12, color: "#aaa", fontStyle: "italic" as const },
 };
